@@ -1,12 +1,10 @@
 package gradethecode;
 
-import java.io.ByteArrayInputStream;
+import static org.junit.Assert.*;
+
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.InputStream;
-
-import static org.junit.Assert.*;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -35,61 +33,59 @@ public class SourceCodeTest {
 
 	@Test
 	public void testFromString() {
-		SourceCode sourceCode = new SourceCode(simpleCode);
+		SourceCode sc = new SourceCode(simpleCode);
 
-		assertEquals(simpleCode, sourceCode.toString());
-		assertNotNull(sourceCode.getFile());
-	}
-
-	@Test
-	public void testFromInputStream() {
-		InputStream stream = new ByteArrayInputStream(simpleCode.getBytes());
-		SourceCode sourceCode = new SourceCode(stream);
-
-		assertEquals(simpleCode, sourceCode.toString());
-		assertNotNull(sourceCode.getFile());
+		assertSame(simpleCode, sc.toString());
 	}
 
 	@Test
 	public void testFromFile() {
-		SourceCode sourceCode = new SourceCode(tempFile);
+		SourceCode sc = new SourceCode(tempFile);
 
-		assertEquals(simpleCode, sourceCode.toString());
-		assertEquals(tempFile, sourceCode.getFile());
+		assertEquals(simpleCode, sc.toString());
 	}
 
 	@Test
 	public void testIdentifyPackage() {
-		SourceCode sourceCode = new SourceCode(simpleCode);
-		assertEquals("com.teste", sourceCode.getPackageName());
+		SourceCode sc = new SourceCode(simpleCode);
+		assertEquals("com.teste", sc.getPackageName());
 
-		sourceCode = new SourceCode("// Comment\n// Comment\n" + simpleCode);
-		assertEquals("com.teste", sourceCode.getPackageName());
+		sc = new SourceCode(tempFile);
+		assertEquals("com.teste", sc.getPackageName());
 
-		sourceCode = new SourceCode("/* Comment\n   Comment*/\n\n" +
+		sc = new SourceCode("// Comment\n// Comment\n" + simpleCode);
+		assertEquals("com.teste", sc.getPackageName());
+
+		sc = new SourceCode("/* Comment\n   Comment*/\n\n" +
 				"/* Comment\n   Comment*/\n\n" + simpleCode);
-		assertEquals("com.teste", sourceCode.getPackageName());
-
-		sourceCode = new SourceCode(
-				"package/*comment*/com   .   \nteste    \n;\n" +
-				"public class Teste {\n" +
-				"	public int number() {\n" +
-				"		return 1000;\n" +
-				"	}\n" +
-				"}\n");
-		assertEquals("com.teste", sourceCode.getPackageName());
+		assertEquals("com.teste", sc.getPackageName());
 	}
 
 	@Test
+	public void testIdentifyClass() {
+		SourceCode sc = new SourceCode(simpleCode);
+		assertEquals("Teste", sc.getClassName());
+	}
+
+	
+	@Test
 	public void testNoPackage() {
-		SourceCode sourceCode = new SourceCode("  " +
+		SourceCode sc = new SourceCode("  " +
 				"public class Teste {\n" +
 				"	public int number() {\n" +
 				"		return 1000;\n" +
 				"	}\n" +
 				"}\n");
 
-		assertEquals("", sourceCode.getPackageName());
+		assertEquals("", sc.getPackageName());
+	}
+
+	@Test
+	public void testSourceCodeObject() throws IOException {
+		SourceCode sc = new SourceCode(simpleCode);
+
+		assertEquals("com.teste.Teste", sc.getSourceCodeObject().toString());
+		assertSame(sc.getSourceCodeObject().getCharContent(false), simpleCode);
 	}
 
 }
