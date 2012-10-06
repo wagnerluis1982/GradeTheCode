@@ -1,50 +1,51 @@
 package gradethecode;
 
-import gradethecode.exceptions.SourceCodeException;
+import gradethecode.exceptions.ClassNotDefinedException;
+import gradethecode.exceptions.EmptyCodeException;
+import gradethecode.exceptions.FileNotReadException;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.net.URI;
 import java.util.NoSuchElementException;
 import java.util.Scanner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import javax.tools.JavaFileObject;
+import javax.tools.SimpleJavaFileObject;
 
 public class SourceCode {
 
 	private String code;
 	private String packageName;
 	private String className;
-	private SourceCodeObject sourceCodeObject;
+	private JavaFileObject javaFileObject;
+	private String qualifiedName;
 
-	public SourceCode(String code) {
+	public SourceCode(String code) throws ClassNotDefinedException {
 		if (code == null)
 			throw new IllegalArgumentException("code should not be null");
 
-		this.setAttributes(code);
+		this.identifyElements(code);
 	}
 
-	public SourceCode(File file) {
+	public SourceCode(File file) throws FileNotReadException,
+			EmptyCodeException, ClassNotDefinedException {
 		if (!(file.isFile() && file.canRead()))
-			throw new SourceCodeException("could not read file " + file);
+			throw new FileNotReadException("could not read file " + file);
 
 		try {
-			this.setAttributes(new Scanner(file).useDelimiter("\\A").next());
+			this.identifyElements(new Scanner(file).useDelimiter("\\A").next());
 		} catch (NoSuchElementException e) {
-			throw new IllegalArgumentException("empty source code");
+			throw new EmptyCodeException("empty source code");
 		} catch (FileNotFoundException e) {
 			// this block exists for the code stay in conformity with jvm rules
 		}
-
-		this.setPackageName(this.code);
 	}
 
-	private void setAttributes(String code) {
-		this.code = code;
-		this.setPackageName(code);
-		this.setClassName(code);
-	}
-
-	private void setPackageName(String code) {
+	private void identifyElements(String code) throws ClassNotDefinedException {
 		// regex to match package name
 		// NOTE: this pattern is assuming the code is well formatted
 		Pattern pattern = Pattern.compile(
@@ -60,37 +61,45 @@ public class SourceCode {
 			this.packageName = matcher.group(1).replaceAll("\\s", "");
 		else
 			this.packageName = "";
+
+		// regex to match class name
+		// NOTE: this pattern is assuming the code is well formatted
+		pattern = Pattern.compile(
+				"(?:.*class\\s*)(\\b\\w*\\b)(?:.*)", Pattern.DOTALL);
+
+		matcher = pattern.matcher(code);
+		if (matcher.matches())
+			this.className = matcher.group(1);
+		else
+			throw new ClassNotDefinedException("code has not a defined class");
+
+		if (this.packageName != null)
+			this.qualifiedName = this.packageName + "." + this.className;
+		else
+			this.qualifiedName = this.className;
+
+		this.code = code;
 	}
 
 	public String getPackageName() {
 		return this.packageName;
 	}
 
-	private void setClassName(String code) {
-		// regex to match class name
-		// NOTE: this pattern is assuming the code is well formatted
-		Pattern pattern = Pattern.compile(
-				"(?:.*class\\s*)(\\b\\w*\\b)(?:.*)", Pattern.DOTALL);
-
-		Matcher matcher = pattern.matcher(code);
-		if (matcher.matches())
-			this.className = matcher.group(1);
-		else
-			throw new SourceCodeException("code has not a defined class");
-	}
-
 	public String getClassName() {
 		return this.className;
 	}
 
-	public SourceCodeObject getSourceCodeObject() {
-		if (this.sourceCodeObject == null) {
-			this.sourceCodeObject = new SourceCodeObject(
-					this.getPackageName() + "." + this.getClassName(),
-					this.code);
+	public String getQualifiedName() {
+		return this.qualifiedName;
+	}
+
+	public JavaFileObject getJavaFileObject() {
+		if (this.javaFileObject == null) {
+			this.javaFileObject = new SuperJavaFileObject(this.qualifiedName,
+														   this.code);
 		}
 
-		return this.sourceCodeObject;
+		return this.javaFileObject;
 	}
 
 	@Override
@@ -99,5 +108,21 @@ public class SourceCode {
 	}
 
 
+	private class SuperJavaFileObject extends SimpleJavaFileObject {
 
+		private String code;
+
+		protected SuperJavaFileObject(String name, String code) {
+			super(URI.create("string:///" + name.replaceAll("\\.", "/")
+					+ Kind.SOURCE.extension), Kind.SOURCE);
+			this.code = code;
+		}
+
+		@Override
+		public CharSequence getCharContent(boolean ignoreEncodingErrors)
+				throws IOException {
+			return code;
+		}
+
+	}
 }
