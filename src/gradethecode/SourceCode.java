@@ -7,6 +7,7 @@ import gradethecode.exceptions.FileNotReadException;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
 import java.util.NoSuchElementException;
 import java.util.Scanner;
@@ -29,6 +30,15 @@ public class SourceCode {
 			throw new IllegalArgumentException("code should not be null");
 
 		this.identifyElements(code);
+	}
+
+	public SourceCode(InputStream stream) throws EmptyCodeException,
+			ClassNotDefinedException {
+		try {
+			this.identifyElements(new Scanner(stream).useDelimiter("\\A").next());
+		} catch (NoSuchElementException e) {
+			throw new EmptyCodeException("empty source code");
+		}
 	}
 
 	public SourceCode(File file) throws FileNotReadException,
@@ -95,7 +105,7 @@ public class SourceCode {
 
 	public JavaFileObject getJavaFileObject() {
 		if (this.javaFileObject == null) {
-			this.javaFileObject = new SuperJavaFileObject(this.qualifiedName,
+			this.javaFileObject = new StringJavaFileObject(this.qualifiedName,
 														   this.code);
 		}
 
@@ -108,11 +118,11 @@ public class SourceCode {
 	}
 
 
-	private class SuperJavaFileObject extends SimpleJavaFileObject {
+	private class StringJavaFileObject extends SimpleJavaFileObject {
 
 		private String code;
 
-		protected SuperJavaFileObject(String name, String code) {
+		protected StringJavaFileObject(String name, String code) {
 			super(URI.create("string:///" + name.replaceAll("\\.", "/")
 					+ Kind.SOURCE.extension), Kind.SOURCE);
 			this.code = code;

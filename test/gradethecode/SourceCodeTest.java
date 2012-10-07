@@ -2,18 +2,19 @@ package gradethecode;
 
 import static org.junit.Assert.*;
 
-import gradethecode.exceptions.ClassNotDefinedException;
 import gradethecode.exceptions.SourceCodeException;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStream;
 
 import org.junit.Test;
 
 public class SourceCodeTest {
 
-	private static String simpleCode = "\n 	" +
+	private String simpleCode = "\n 	" +
 			"package com.teste;\n\n" +
 			"public class Teste {\n" +
 			"	public int number() {\n" +
@@ -22,10 +23,24 @@ public class SourceCodeTest {
 			"}\n";
 
 	@Test
-	public void testFromString() throws ClassNotDefinedException {
+	public void testFromString() throws SourceCodeException, IOException {
 		SourceCode sc = new SourceCode(simpleCode);
 
 		assertSame(simpleCode, sc.toString());
+		testIdentifyPackage(sc);
+		testIdentifyClass(sc);
+		testJavaFileObject(sc);
+	}
+
+	@Test
+	public void testFromInputStream() throws SourceCodeException, IOException {
+		InputStream stream = new ByteArrayInputStream(simpleCode.getBytes());
+		SourceCode sc = new SourceCode(stream);
+
+		assertEquals(simpleCode, sc.toString());
+		testIdentifyPackage(sc);
+		testIdentifyClass(sc);
+		testJavaFileObject(sc);
 	}
 
 	@Test
@@ -39,11 +54,12 @@ public class SourceCodeTest {
 		SourceCode sc = new SourceCode(tempFile);
 
 		assertEquals(simpleCode, sc.toString());
+		testIdentifyPackage(sc);
+		testIdentifyClass(sc);
+		testJavaFileObject(sc);
 	}
 
-	@Test
-	public void testIdentifyPackage() throws SourceCodeException {
-		SourceCode sc = new SourceCode(simpleCode);
+	private void testIdentifyPackage(SourceCode sc) throws SourceCodeException {
 		assertEquals("com.teste", sc.getPackageName());
 
 		sc = new SourceCode("// Comment\n// Comment\n" + simpleCode);
@@ -54,9 +70,7 @@ public class SourceCodeTest {
 		assertEquals("com.teste", sc.getPackageName());
 	}
 
-	@Test
-	public void testIdentifyClass() throws SourceCodeException {
-		SourceCode sc = new SourceCode(simpleCode);
+	private void testIdentifyClass(SourceCode sc) throws SourceCodeException {
 		assertEquals("Teste", sc.getClassName());
 	}
 
@@ -72,12 +86,9 @@ public class SourceCodeTest {
 		assertEquals("", sc.getPackageName());
 	}
 
-	@Test
-	public void testJavaFileObject() throws IOException, SourceCodeException {
-		SourceCode sc = new SourceCode(simpleCode);
-
-		assertSame(sc.getJavaFileObject().getCharContent(false), simpleCode);
+	private void testJavaFileObject(SourceCode sc) throws IOException, SourceCodeException {
 		assertNotNull(sc.getJavaFileObject());
+		assertEquals(sc.getJavaFileObject().getCharContent(false), simpleCode);
 	}
 
 }

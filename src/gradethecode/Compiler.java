@@ -88,6 +88,11 @@ public class Compiler {
 		return this.deleteDir(this.targetDir, this.deleteIncluding);
 	}
 
+	public void reset() {
+		this.deleteDir(this.targetDir, false);
+		this.codes.clear();
+	}
+
 	public void addSourceCode(SourceCode ...sourceCodes) {
 		for (SourceCode code : sourceCodes)
 			this.codes.add(code);
