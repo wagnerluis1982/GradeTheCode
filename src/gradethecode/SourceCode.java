@@ -17,7 +17,7 @@ import java.util.regex.Pattern;
 import javax.tools.JavaFileObject;
 import javax.tools.SimpleJavaFileObject;
 
-public class SourceCode {
+public class SourceCode implements Comparable<SourceCode> {
 
 	private String code;
 	private String packageName;
@@ -117,22 +117,32 @@ public class SourceCode {
 		return this.code;
 	}
 
-
 	private class StringJavaFileObject extends SimpleJavaFileObject {
-
-		private String code;
+		private CharSequence charContent;
 
 		protected StringJavaFileObject(String name, String code) {
 			super(URI.create("string:///" + name.replaceAll("\\.", "/")
 					+ Kind.SOURCE.extension), Kind.SOURCE);
-			this.code = code;
+			this.charContent = code;
 		}
 
 		@Override
 		public CharSequence getCharContent(boolean ignoreEncodingErrors)
 				throws IOException {
-			return code;
+			return charContent;
 		}
-
 	}
+
+
+	@Override
+	public boolean equals(Object obj) {
+		SourceCode o = (SourceCode) obj;
+		return this.qualifiedName == o.qualifiedName;
+	}
+
+	@Override
+	public int compareTo(SourceCode o) {
+		return this.qualifiedName.compareTo(o.qualifiedName);
+	}
+
 }

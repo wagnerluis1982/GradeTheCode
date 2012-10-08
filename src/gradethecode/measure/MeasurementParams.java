@@ -6,18 +6,18 @@ import java.util.TreeSet;
 
 public class MeasurementParams {
 
-	private Set<ClassParams> setOfParams;
+	private Set<ClassParams> setOfClassParams;
 
 	public MeasurementParams() {
-		this.setOfParams = new TreeSet<ClassParams>();
+		this.setOfClassParams = new TreeSet<ClassParams>();
 	}
 
 	public void addClassParams(ClassParams params) {
-		setOfParams.add(params);
+		setOfClassParams.add(params);
 	}
 
-	public Set<ClassParams> getSetOfParams() {
-		return Collections.unmodifiableSet(setOfParams);
+	public Set<ClassParams> getSetOfClassParams() {
+		return Collections.unmodifiableSet(setOfClassParams);
 	}
 
 }

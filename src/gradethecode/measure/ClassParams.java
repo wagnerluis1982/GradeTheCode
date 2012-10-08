@@ -1,29 +1,29 @@
 package gradethecode.measure;
 
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.Set;
+import java.util.TreeSet;
 
 public class ClassParams implements Comparable<ClassParams> {
 
 	private String name;
-	private Set<MethodParams> setOfMethods;
+	private Set<MethodParams> setOfMethodParams;
 
 	public ClassParams(String name) {
 		this.name = name;
-		this.setOfMethods = new HashSet<MethodParams>();
-	}
-
-	public void addMethodParam(MethodParams method) {
-		this.setOfMethods.add(method);
+		this.setOfMethodParams = new TreeSet<MethodParams>();
 	}
 
 	public String getName() {
 		return name;
 	}
 
+	public void addMethodParams(MethodParams params) {
+		this.setOfMethodParams.add(params);
+	}
+
 	public Set<MethodParams> getSetOfMethodParams() {
-		return Collections.unmodifiableSet(setOfMethods);
+		return Collections.unmodifiableSet(setOfMethodParams);
 	}
 
 	@Override
@@ -31,16 +31,16 @@ public class ClassParams implements Comparable<ClassParams> {
 		ClassParams o = (ClassParams) obj;
 
 		return this.name.equals(o.name) &&
-				this.setOfMethods.equals(o.setOfMethods);
+				this.setOfMethodParams.equals(o.setOfMethodParams);
 	}
-
 
 	@Override
 	public int compareTo(ClassParams o) {
 		if (this.equals(o))
 			return 0;
 
-		return (this.name + this.setOfMethods).compareTo(o.name + o.setOfMethods);
+		return (this.name + this.setOfMethodParams)
+					.compareTo(o.name + o.setOfMethodParams);
 	}
 
 }

@@ -4,8 +4,10 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-public class MethodParams {
+public class MethodParams implements Comparable<MethodParams> {
 
+	private static final Class<?>[] NO_CLASSES = new Class<?>[0];
+	private static final Object[] NO_OBJECTS = new Object[0];
 	private String name;
 	private Class<?>[] parameterTypes;;
 	private Class<?> returnType;
@@ -14,17 +16,21 @@ public class MethodParams {
 
 	public MethodParams(String name, Class<?>[] parametersType, Class<?> returnType) {
 		this.name = name;
-		this.parameterTypes = parametersType != null ? parametersType : new Class<?>[0];
+		this.parameterTypes = parametersType != null ? parametersType : NO_CLASSES;
 		this.returnType = returnType;
 
 		this.comparingRules = new ArrayList<Object[]>();
 	}
 
-	public void addComparingRule(Object[] parameterValues, Object returnValue) {
+	public void addComparisonRule(Object[] parameterValues, Object returnValue) {
 		// prevent parameterValues to add null to the rules
-		parameterValues = parameterValues != null ? parameterValues : new Object[0];
+		parameterValues = parameterValues != null ? parameterValues : NO_OBJECTS;
 
 		this.comparingRules.add(new Object[] {parameterValues, returnValue});
+	}
+
+	public List<Object[]> getComparisonRules() {
+		return Collections.unmodifiableList(comparingRules);
 	}
 
 	public String getName() {
@@ -39,10 +45,6 @@ public class MethodParams {
 		return returnType;
 	}
 
-	public List<Object[]> getComparingRules() {
-		return Collections.unmodifiableList(comparingRules);
-	}
-
 	@Override
 	public boolean equals(Object obj) {
 		MethodParams o = (MethodParams) obj;
@@ -52,5 +54,13 @@ public class MethodParams {
 				this.returnType.equals(o.returnType);
 	}
 
+	@Override
+	public int compareTo(MethodParams o) {
+		if (this.equals(o))
+			return 0;
+
+		return (this.name + this.parameterTypes + this.returnType)
+						.compareTo(o.name + o.parameterTypes + o.returnType);
+	}
 
 }

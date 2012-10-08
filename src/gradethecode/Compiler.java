@@ -14,7 +14,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
+import java.util.TreeSet;
 
 import javax.tools.Diagnostic;
 import javax.tools.DiagnosticCollector;
@@ -26,9 +28,8 @@ import javax.tools.ToolProvider;
 
 public class Compiler {
 	private File targetDir;
-	private List<SourceCode> codes;
+	private Set<SourceCode> codes;
 	private boolean deleteIncluding = false;
-	private ClassLoader classLoader;
 
 	public Compiler(File targetDir) throws IOException, CompilerException {
 		if (targetDir == null) {
@@ -39,9 +40,7 @@ public class Compiler {
 			throw new CompilerException("invalid target directory");
 
 		this.targetDir = targetDir;
-		this.classLoader = new URLClassLoader(
-				new URL[] { this.targetDir.toURI().toURL() });
-		this.codes = new ArrayList<SourceCode>();
+		this.codes = new TreeSet<SourceCode>();
 	}
 
 	public Compiler() throws IOException, CompilerException {
@@ -98,9 +97,13 @@ public class Compiler {
 		this.codes.clear();
 	}
 
-	public void addSourceCode(SourceCode ...sourceCodes) {
+	// TODO: change to void and raise an exception if this.codes contains a code
+	public boolean addSourceCode(SourceCode ...sourceCodes) {
 		for (SourceCode code : sourceCodes)
-			this.codes.add(code);
+			if (this.codes.contains(code))
+				return false;
+
+		return this.codes.addAll(Arrays.asList(sourceCodes));
 	}
 
 	public File getTargetDir() {
@@ -113,7 +116,10 @@ public class Compiler {
 
 		for (SourceCode code : this.codes) {
 			String name = code.getQualifiedName();
-			classes.put(name, this.classLoader.loadClass(name));
+			ClassLoader loader = new URLClassLoader(
+					new URL[] {this.targetDir.toURI().toURL()});
+
+			classes.put(name, loader.loadClass(name));
 		}
 
 		return Collections.unmodifiableMap(classes);

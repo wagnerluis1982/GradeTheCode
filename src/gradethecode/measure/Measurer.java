@@ -24,7 +24,7 @@ public class Measurer {
 			InstantiationException {
 		MeasurementResults results = new MeasurementResults();
 
-		for (ClassParams cp : this.params.getSetOfParams()) {
+		for (ClassParams cp : this.params.getSetOfClassParams()) {
 			String clsName = cp.getName();
 
 			if (!classes.containsKey(clsName))
@@ -43,7 +43,7 @@ public class Measurer {
 					continue;
 				}
 
-				List<Object[]> rules = mp.getComparingRules();
+				List<Object[]> rules = mp.getComparisonRules();
 				int hits = 0;
 				for (Object[] rule : rules) {
 					Object expected = rule[1];

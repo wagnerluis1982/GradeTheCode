@@ -18,6 +18,7 @@ import org.junit.Test;
 
 public class GraderTest {
 
+/*
 	private enum Grades {
 		BETTER, IDEAL, GOOD, POOR
 	}
@@ -64,5 +65,6 @@ public class GraderTest {
 	private static InputStream resource(String name) {
 		return GraderTest.class.getResourceAsStream(name);
 	}
+*/
 
 }
