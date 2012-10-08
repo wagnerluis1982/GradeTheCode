@@ -1,0 +1,18 @@
+package com.test;
+
+public class Test {
+
+	public int method1() throws InterruptedException {
+		Thread.sleep(8);
+		return 45;
+	}
+
+	public int method2(int number) throws InterruptedException {
+		Thread.sleep(20);
+		if (number > 0)
+			return 1;
+		else
+			return 0;
+	}
+
+}

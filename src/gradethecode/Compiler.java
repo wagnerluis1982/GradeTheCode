@@ -13,6 +13,8 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
+import java.util.TreeMap;
 
 import javax.tools.Diagnostic;
 import javax.tools.DiagnosticCollector;
@@ -26,6 +28,7 @@ public class Compiler {
 	private File targetDir;
 	private List<SourceCode> codes;
 	private boolean deleteIncluding = false;
+	private ClassLoader classLoader;
 
 	public Compiler(File targetDir) throws IOException, CompilerException {
 		if (targetDir == null) {
@@ -36,6 +39,8 @@ public class Compiler {
 			throw new CompilerException("invalid target directory");
 
 		this.targetDir = targetDir;
+		this.classLoader = new URLClassLoader(
+				new URL[] { this.targetDir.toURI().toURL() });
 		this.codes = new ArrayList<SourceCode>();
 	}
 
@@ -102,17 +107,16 @@ public class Compiler {
 		return targetDir;
 	}
 
-	public List<Class<?>> loadClasses() throws MalformedURLException,
+	public Map<String, Class<?>> loadClasses() throws MalformedURLException,
 			ClassNotFoundException {
-		List<Class<?>> classes = new ArrayList<Class<?>>();
-		ClassLoader loader = new URLClassLoader(
-				new URL[] {this.targetDir.toURI().toURL()});
+		Map<String, Class<?>> classes = new TreeMap<String, Class<?>>();
 
 		for (SourceCode code : this.codes) {
-			classes.add(loader.loadClass(code.getQualifiedName()));
+			String name = code.getQualifiedName();
+			classes.put(name, this.classLoader.loadClass(name));
 		}
 
-		return Collections.unmodifiableList(classes);
+		return Collections.unmodifiableMap(classes);
 	}
 
 }

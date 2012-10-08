@@ -2,11 +2,12 @@ package gradethecode;
 
 import static org.junit.Assert.*;
 
+import gradethecode.exceptions.ClassNotDefinedException;
 import gradethecode.exceptions.CompilerException;
+import gradethecode.exceptions.EmptyCodeException;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URISyntaxException;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -23,17 +24,26 @@ public class GraderTest {
 
 	private static Compiler compiler;
 	private static Map<Grades, InputStream> res;
+	private static String qualifiedName;
+	private static Class<?> idealClass;
 
 	@BeforeClass
 	public static void setUpClass() throws IOException, CompilerException,
-			URISyntaxException {
+			EmptyCodeException, ClassNotDefinedException,
+			ClassNotFoundException {
 		compiler = new Compiler();
 
 		res = new TreeMap<Grades, InputStream>();
-		res.put(Grades.BETTER, resource("examples/Better.src"));
-		res.put(Grades.IDEAL, resource("examples/Ideal.src"));
-		res.put(Grades.GOOD, resource("examples/Good.src"));
-		res.put(Grades.POOR, resource("examples/Poor.src"));
+		res.put(Grades.BETTER, resource("measure/examples/Better.src"));
+		res.put(Grades.IDEAL, resource("measure/examples/Ideal.src"));
+		res.put(Grades.GOOD, resource("measure/examples/Good.src"));
+		res.put(Grades.POOR, resource("measure/examples/Poor.src"));
+
+		compiler.addSourceCode(new SourceCode(res.get(Grades.IDEAL)));
+		compiler.compile();
+
+		idealClass = compiler.loadClasses().get(qualifiedName);
+		// Measurement area
 	}
 
 	@AfterClass
@@ -51,7 +61,7 @@ public class GraderTest {
 
 	}
 
-	private static InputStream resource(String name) throws URISyntaxException {
+	private static InputStream resource(String name) {
 		return GraderTest.class.getResourceAsStream(name);
 	}
 

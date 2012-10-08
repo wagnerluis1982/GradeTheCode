@@ -31,10 +31,10 @@ public class CompilerTest {
 		compiler.addSourceCode(new SourceCode(simpleCode));
 		assertTrue(compiler.compile());
 
-		List<Class<?>> classes = compiler.loadClasses();
+		Map<String, Class<?>> classes = compiler.loadClasses();
 		assertEquals(1, classes.size());
 
-		Class<?> c = classes.get(0);
+		Class<?> c = classes.get("com.teste.Teste");
 		assertEquals("com.teste.Teste", c.getName());
 
 		Method m = c.getDeclaredMethod("number");
