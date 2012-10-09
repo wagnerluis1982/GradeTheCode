@@ -8,12 +8,13 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class Measurer {
 
-	private MeasurementParams params;
+	private Set<ClassParams> params;
 
-	public Measurer(MeasurementParams params) {
+	public Measurer(Set<ClassParams> params) {
 		this.params = params;
 	}
 
@@ -24,7 +25,7 @@ public class Measurer {
 			InstantiationException {
 		MeasurementResults results = new MeasurementResults();
 
-		for (ClassParams cp : this.params.getSetOfClassParams()) {
+		for (ClassParams cp : this.params) {
 			String clsName = cp.getName();
 
 			if (!classes.containsKey(clsName))
@@ -32,7 +33,7 @@ public class Measurer {
 			Class<?> cls = classes.get(clsName);
 			Object obj = cls.newInstance();
 
-			for (MethodParams mp : cp.getSetOfMethodParams()) {
+			for (MethodParams mp : cp.getMethods()) {
 				String methName = mp.getName();
 				Method method = cls.getDeclaredMethod(methName, mp.getParameterTypes());
 
@@ -53,7 +54,7 @@ public class Measurer {
 						hits++;
 				}
 				results.setComparisonResult(clsName, methName, mp.getParameterTypes(),
-						new Integer[] {hits, rules.size()});
+						new int[] {hits, rules.size()});
 			}
 		}
 

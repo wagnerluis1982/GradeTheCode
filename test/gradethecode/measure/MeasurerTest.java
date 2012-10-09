@@ -14,6 +14,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.net.MalformedURLException;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -21,7 +24,6 @@ import org.junit.Test;
 
 public class MeasurerTest {
 
-	protected static MeasurementParams params;
 	protected static ClassParams cls;
 	protected static MethodParams method1;
 	protected static MethodParams method2;
@@ -32,27 +34,20 @@ public class MeasurerTest {
 	public static void setUpClass() throws IOException, CompilerException {
 		compiler = new Compiler();
 
-		// Defining method1
-		method1 = new MethodParams("method1", null, int.class);
+		// Creating a class params, adding methods to it and defining them
+		cls = new ClassParams("com.test.Test");
+		// method1
+		method1 = cls.addMethod("method1", null, int.class);
 		method1.addComparisonRule(null, 45);
-
-		// Defining method2
-		method2 = new MethodParams("method2", new Class[] {int.class}, int.class);
+		// method2
+		method2 = cls.addMethod("method2", new Class[] {int.class}, int.class);
 		method2.addComparisonRule(new Object[] {10}, 1);
 		method2.addComparisonRule(new Object[] {-1}, 0);
 
-		// Adding methods to class
-		cls = new ClassParams("com.test.Test");
-		cls.addMethodParams(method1);
-		cls.addMethodParams(method2);
-
-		// Adding ClassParams to the MeasurementParams
-		params = new MeasurementParams();
-		params.addClassParams(cls);
-
-		// Create a Measurer with the MeasurementParams
-		measurer = new Measurer(params);
+		// Create a Measurer with a set of class params
+		measurer = new Measurer(asSet(cls));
 	}
+
 
 	@AfterClass
 	public static void tearDownClass() {
@@ -66,39 +61,77 @@ public class MeasurerTest {
 			IllegalArgumentException, InvocationTargetException,
 			InstantiationException, MalformedURLException,
 			ClassNotFoundException {
-		SourceCode code;
 		MeasurementResults results;
 
 		// Testing a better code
-		code = new SourceCode(resource("Better.src"));
 		compiler.reset();
-		compiler.addSourceCode(code);
+		compiler.addSourceCode(new SourceCode(resource("Better.src")));
 		compiler.compile();
 		results = measurer.measure(compiler.loadClasses());
-		assertArrayEquals(new Integer[] {1, 1},
+
+		assertArrayEquals(new int[] {1, 1},
 				results.getComparisonResult(cls.getName(), method1.getName(),
 						method1.getParameterTypes()));
-		assertArrayEquals(new Integer[] {2, 2},
+		assertArrayEquals(new int[] {2, 2},
 				results.getComparisonResult(cls.getName(), method2.getName(),
 						method2.getParameterTypes()));
 
 		// Testing a poor code
-		code = new SourceCode(resource("Poor.src"));
 		compiler.reset();
-		compiler.addSourceCode(code);
+		compiler.addSourceCode(new SourceCode(resource("Poor.src")));
 		compiler.compile();
 		results = measurer.measure(compiler.loadClasses());
-		assertArrayEquals(new Integer[] {1, 1},
+
+		assertArrayEquals(new int[] {1, 1},
 				results.getComparisonResult(cls.getName(), method1.getName(),
 						method1.getParameterTypes()));
-		assertArrayEquals(new Integer[] {1, 2},
+		assertArrayEquals(new int[] {1, 2},
 				results.getComparisonResult(cls.getName(), method2.getName(),
 						method2.getParameterTypes()));
+
+		// Testing two classes
+		compiler.reset();
+		compiler.addSourceCode(new SourceCode(resource("Better.src")));
+		compiler.addSourceCode(new SourceCode(resource("OtherClass.src")));
+		compiler.compile();
+
+		// Other class params
+		ClassParams oCls = new ClassParams("org.othertest.OtherClass");
+		// value1
+		MethodParams value1 = oCls.addMethod("value1", null, int.class);
+		value1.addComparisonRule(null, 100);
+		// value2
+		MethodParams value2 = oCls.addMethod("value2", new Class[] {int.class}, int.class);
+		value2.addComparisonRule(new Object[] {3}, 9);
+		value2.addComparisonRule(new Object[] {2}, 4);
+
+		Measurer measurer = new Measurer(asSet(cls, oCls));;
+		results = measurer.measure(compiler.loadClasses());
+
+		assertArrayEquals(new int[] {1, 1},
+				results.getComparisonResult(cls.getName(), method1.getName(),
+						method1.getParameterTypes()));
+		assertArrayEquals(new int[] {2, 2},
+				results.getComparisonResult(cls.getName(), method2.getName(),
+						method2.getParameterTypes()));
+
+		assertArrayEquals(new int[] {1, 1},
+				results.getComparisonResult(oCls.getName(), value1.getName(),
+						value1.getParameterTypes()));
+		assertArrayEquals(new int[] {2, 2},
+				results.getComparisonResult(oCls.getName(), value2.getName(),
+						value2.getParameterTypes()));
 	}
 
 	protected InputStream resource(String name) {
 		return MeasurerTest.class.getResourceAsStream("resources"
 				+ separator + name.replaceAll("/", separator));
+	}
+
+	protected static <T> Set<T> asSet(T ...items) {
+		Set<T> set = new HashSet<T>();
+		set.addAll(Arrays.asList(items));
+		return set;
 	}
 
 }

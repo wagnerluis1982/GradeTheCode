@@ -6,31 +6,30 @@ import java.util.List;
 
 public class MethodParams implements Comparable<MethodParams> {
 
-	private static final Class<?>[] NO_CLASSES = new Class<?>[0];
-	private static final Object[] NO_OBJECTS = new Object[0];
-	private String name;
-	private Class<?>[] parameterTypes;;
-	private Class<?> returnType;
+	protected static final Class<?>[] NO_CLASSES = new Class<?>[0];
+	protected static final Object[] NO_OBJECTS = new Object[0];
+	protected String name;
+	protected Class<?>[] parameterTypes;;
+	protected Class<?> returnType;
+	protected List<Object[]> comparisonRules;
 
-	private List<Object[]> comparingRules;
-
-	public MethodParams(String name, Class<?>[] parametersType, Class<?> returnType) {
+	protected MethodParams(String name, Class<?>[] parametersType, Class<?> returnType) {
 		this.name = name;
 		this.parameterTypes = parametersType != null ? parametersType : NO_CLASSES;
 		this.returnType = returnType;
 
-		this.comparingRules = new ArrayList<Object[]>();
+		this.comparisonRules = new ArrayList<Object[]>();
 	}
 
 	public void addComparisonRule(Object[] parameterValues, Object returnValue) {
 		// prevent parameterValues to add null to the rules
 		parameterValues = parameterValues != null ? parameterValues : NO_OBJECTS;
 
-		this.comparingRules.add(new Object[] {parameterValues, returnValue});
+		this.comparisonRules.add(new Object[] {parameterValues, returnValue});
 	}
 
 	public List<Object[]> getComparisonRules() {
-		return Collections.unmodifiableList(comparingRules);
+		return Collections.unmodifiableList(comparisonRules);
 	}
 
 	public String getName() {
