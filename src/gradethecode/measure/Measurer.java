@@ -2,9 +2,14 @@ package gradethecode.measure;
 
 import static java.lang.String.format;
 
+import gradethecode.Compiler;
+import gradethecode.SourceCode;
+import gradethecode.exceptions.CompilerException;
+import gradethecode.exceptions.DuplicateSourceCodeException;
 import gradethecode.measure.MeasurementResults.Result;
 import gradethecode.measure.exceptions.MissingClassException;
 
+import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -76,6 +81,24 @@ public class Measurer {
 		}
 
 		return results;
+	}
+
+	public MeasurementResults measure(SourceCode... sourceCodes)
+			throws IOException, CompilerException,
+			DuplicateSourceCodeException, MissingClassException,
+			NoSuchMethodException, SecurityException, IllegalAccessException,
+			IllegalArgumentException, InvocationTargetException,
+			InstantiationException, ClassNotFoundException {
+		Compiler compiler = null;
+		try {
+			compiler = new Compiler();
+			compiler.addSourceCode(sourceCodes);
+			compiler.compile();
+			return measure(compiler.loadClasses());
+		} finally {
+			if (compiler != null)
+				compiler.dispose();
+		}
 	}
 
 }

@@ -12,6 +12,7 @@ import java.util.Map;
 
 import gradethecode.exceptions.ClassNotDefinedException;
 import gradethecode.exceptions.CompilerException;
+import gradethecode.exceptions.DuplicateSourceCodeException;
 
 import org.junit.Test;
 
@@ -21,11 +22,7 @@ public class CompilerTest {
 			"public class Teste { public int number() { return 1000; } }";
 
 	@Test
-	public void testCompile() throws IOException, CompilerException,
-			ClassNotDefinedException, ClassNotFoundException,
-			NoSuchMethodException, SecurityException, IllegalAccessException,
-			IllegalArgumentException, InvocationTargetException,
-			InstantiationException {
+	public void testCompile() throws IOException, CompilerException, DuplicateSourceCodeException, ClassNotDefinedException, ClassNotFoundException, NoSuchMethodException, SecurityException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, InstantiationException {
 		Compiler compiler = new Compiler();
 		compiler.addSourceCode(new SourceCode(simpleCode));
 		assertTrue(compiler.compile());
@@ -43,8 +40,7 @@ public class CompilerTest {
 	}
 
 	@Test
-	public void testDispose() throws IOException,
-			CompilerException, ClassNotDefinedException {
+	public void testDispose() throws IOException, CompilerException, DuplicateSourceCodeException, ClassNotDefinedException {
 		Compiler compiler = new Compiler();
 		compiler.addSourceCode(new SourceCode(simpleCode));
 		compiler.compile();
@@ -66,7 +62,8 @@ public class CompilerTest {
 
 	@Test
 	public void testDisposeInformingTarget() throws IOException,
-			CompilerException, ClassNotDefinedException {
+			CompilerException, DuplicateSourceCodeException,
+			ClassNotDefinedException {
 		File targetDir = Files.createTempDirectory("gtcTest_").toFile();
 		targetDir.deleteOnExit();
 

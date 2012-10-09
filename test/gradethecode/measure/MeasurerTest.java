@@ -5,9 +5,9 @@ import static java.io.File.separator;
 import static org.hamcrest.number.OrderingComparison.*;
 
 import gradethecode.SourceCode;
-import gradethecode.Compiler;
 import gradethecode.exceptions.ClassNotDefinedException;
 import gradethecode.exceptions.CompilerException;
+import gradethecode.exceptions.DuplicateSourceCodeException;
 import gradethecode.exceptions.EmptyCodeException;
 import gradethecode.measure.MeasurementResults.Result;
 import gradethecode.measure.exceptions.MissingClassException;
@@ -15,12 +15,10 @@ import gradethecode.measure.exceptions.MissingClassException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
-import java.net.MalformedURLException;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -30,12 +28,9 @@ public class MeasurerTest {
 	protected static MethodParams method1;
 	protected static MethodParams method2;
 	protected static Measurer measurer;
-	protected static Compiler compiler;
 
 	@BeforeClass
 	public static void setUpClass() throws IOException, CompilerException {
-		compiler = new Compiler();
-
 		// Creating a class params, adding methods to it and defining them
 		clp = new ClassParams("com.test.Test");
 		// method1
@@ -50,26 +45,18 @@ public class MeasurerTest {
 		measurer = new Measurer(asSet(clp));
 	}
 
-	@AfterClass
-	public static void tearDownClass() {
-		compiler.dispose();
-	}
-
 	@Test
-	public void testMeasure() throws EmptyCodeException,
-			ClassNotDefinedException, MissingClassException,
-			NoSuchMethodException, SecurityException, IllegalAccessException,
-			IllegalArgumentException, InvocationTargetException,
-			InstantiationException, MalformedURLException,
-			ClassNotFoundException {
+	public void testMeasure() throws DuplicateSourceCodeException,
+			EmptyCodeException, ClassNotDefinedException,
+			MissingClassException, NoSuchMethodException, SecurityException,
+			IllegalAccessException, IllegalArgumentException,
+			InvocationTargetException, InstantiationException,
+			ClassNotFoundException, IOException, CompilerException {
 		MeasurementResults results;
 		Result r;
 
 		// Testing the best code
-		compiler.reset();
-		compiler.addSourceCode(new SourceCode(resource("Better.src")));
-		compiler.compile();
-		results = measurer.measure(compiler.loadClasses());
+		results = measurer.measure(new SourceCode(resource("Better.src")));
 
 		// method1 results
 		r = results.getResult(clp.getName(), method1.getName(), method1.getParameterTypes());
@@ -82,10 +69,7 @@ public class MeasurerTest {
 		assertThat(r.getElapsedTime(), greaterThanOrEqualTo(nanoSeconds(3)));
 
 		// Testing a poor code
-		compiler.reset();
-		compiler.addSourceCode(new SourceCode(resource("Poor.src")));
-		compiler.compile();
-		results = measurer.measure(compiler.loadClasses());
+		results = measurer.measure(new SourceCode(resource("Poor.src")));
 
 		r = results.getResult(clp.getName(), method1.getName(), method1.getParameterTypes());
 		assertArrayEquals(new int[] {1, 1}, r.getComparisons());
@@ -95,11 +79,7 @@ public class MeasurerTest {
 		assertArrayEquals(new int[] {1, 2}, r.getComparisons());
 		assertThat(r.getElapsedTime(), greaterThanOrEqualTo(nanoSeconds(10)));
 
-		// Testing two classes
-		compiler.reset();
-		compiler.addSourceCode(new SourceCode(resource("Better.src")));
-		compiler.addSourceCode(new SourceCode(resource("OtherClass.src")));
-		compiler.compile();
+		// Now, testing two classes
 
 		// Other class params
 		ClassParams oClp = new ClassParams("org.othertest.OtherClass");
@@ -112,7 +92,8 @@ public class MeasurerTest {
 		value2.addComparisonRule(new Object[] {2}, 4);
 
 		Measurer measurer = new Measurer(asSet(clp, oClp));;
-		results = measurer.measure(compiler.loadClasses());
+		results = measurer.measure(new SourceCode(resource("Better.src")),
+				new SourceCode(resource("OtherClass.src")));
 
 		// Better.src
 		r = results.getResult(clp.getName(), method1.getName(), method1.getParameterTypes());
@@ -123,7 +104,7 @@ public class MeasurerTest {
 		assertArrayEquals(new int[] {2, 2}, r.getComparisons());
 		assertThat(r.getElapsedTime(), greaterThanOrEqualTo(nanoSeconds(3)));
 
-		// OtherClass.src - this code doesn't test elapsed time because isn't deterministic
+		// OtherClass.src - elapsed time isn't tested here because is not deterministic
 		r = results.getResult(oClp.getName(), value1.getName(), value1.getParameterTypes());
 		assertArrayEquals(new int[] {1, 1}, r.getComparisons());
 
@@ -131,12 +112,12 @@ public class MeasurerTest {
 		assertArrayEquals(new int[] {2, 2}, r.getComparisons());
 	}
 
-	protected InputStream resource(String name) {
+	protected static InputStream resource(String name) {
 		return MeasurerTest.class.getResourceAsStream("resources"
 				+ separator + name.replaceAll("/", separator));
 	}
 
-	protected long nanoSeconds(long millis) {
+	protected static long nanoSeconds(long millis) {
 		return millis * 1000000;
 	}
 

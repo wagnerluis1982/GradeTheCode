@@ -19,7 +19,7 @@ public class ClassParams implements Comparable<ClassParams> {
 	}
 
 	public MethodParams addMethod(String name, Class<?>[] parametersType, Class<?> returnType) {
-		MethodParams params = new MethodParams(name, parametersType, returnType);
+		MethodParams params = new MethodParams(this.name, name, parametersType, returnType);
 		this.setOfMethodParams.add(params);
 
 		return params;

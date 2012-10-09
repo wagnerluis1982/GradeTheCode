@@ -8,12 +8,15 @@ public class MethodParams implements Comparable<MethodParams> {
 
 	protected static final Class<?>[] NO_CLASSES = new Class<?>[0];
 	protected static final Object[] NO_OBJECTS = new Object[0];
+	protected String className;
 	protected String name;
 	protected Class<?>[] parameterTypes;;
 	protected Class<?> returnType;
 	protected List<Object[]> comparisonRules;
 
-	protected MethodParams(String name, Class<?>[] parametersType, Class<?> returnType) {
+	protected MethodParams(String className, String name,
+			Class<?>[] parametersType, Class<?> returnType) {
+		this.className = className;
 		this.name = name;
 		this.parameterTypes = parametersType != null ? parametersType : NO_CLASSES;
 		this.returnType = returnType;
@@ -44,11 +47,16 @@ public class MethodParams implements Comparable<MethodParams> {
 		return returnType;
 	}
 
+	public String belongsTo() {
+		return this.className;
+	}
+
 	@Override
 	public boolean equals(Object obj) {
 		MethodParams o = (MethodParams) obj;
 
-		return this.name.equals(o.name) &&
+		return this.className.equals(o.name) &&
+				this.name.equals(o.name) &&
 				Arrays.equals(this.parameterTypes, o.parameterTypes) &&
 				this.returnType.equals(o.returnType);
 	}
@@ -58,8 +66,8 @@ public class MethodParams implements Comparable<MethodParams> {
 		if (this.equals(o))
 			return 0;
 
-		return (this.name + this.parameterTypes + this.returnType)
-						.compareTo(o.name + o.parameterTypes + o.returnType);
+		return (this.className + this.name + this.parameterTypes + this.returnType)
+						.compareTo(o.className + o.name + o.parameterTypes + o.returnType);
 	}
 
 }

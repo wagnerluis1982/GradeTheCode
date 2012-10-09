@@ -1,6 +1,7 @@
 package gradethecode;
 
 import gradethecode.exceptions.CompilerException;
+import gradethecode.exceptions.DuplicateSourceCodeException;
 
 import java.io.File;
 import java.io.IOException;
@@ -97,13 +98,13 @@ public class Compiler {
 		this.codes.clear();
 	}
 
-	// TODO: change to void and raise an exception if this.codes contains a code
-	public boolean addSourceCode(SourceCode ...sourceCodes) {
+	public void addSourceCode(SourceCode ...sourceCodes) throws DuplicateSourceCodeException {
 		for (SourceCode code : sourceCodes)
 			if (this.codes.contains(code))
-				return false;
+				throw new DuplicateSourceCodeException(code.getQualifiedName()
+						+ " already exists in this set");
 
-		return this.codes.addAll(Arrays.asList(sourceCodes));
+		this.codes.addAll(Arrays.asList(sourceCodes));
 	}
 
 	public File getTargetDir() {
