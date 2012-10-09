@@ -2,10 +2,12 @@ package gradethecode.measure;
 
 import static java.lang.String.format;
 
+import gradethecode.measure.MeasurementResults.Result;
 import gradethecode.measure.exceptions.MissingClassException;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -40,21 +42,36 @@ public class Measurer {
 				// if return type is invalid, all other measures in this
 				// method will not be done
 				if (!method.getReturnType().isAssignableFrom(mp.getReturnType())) {
-					results.setComparisonResult(clsName, methName, mp.getParameterTypes(), null);
+					results.setResult(clsName, methName, mp.getParameterTypes(), null);
 					continue;
 				}
 
 				List<Object[]> rules = mp.getComparisonRules();
 				int hits = 0;
+				List<Long> elapsedTimes = new ArrayList<Long>();
 				for (Object[] rule : rules) {
 					Object expected = rule[1];
-					Object value = method.invoke(obj, (Object[])rule[0]);
+
+					// invoke method as much as needed to calculate elapsed time
+					Object value = null;
+					long startTime = System.nanoTime();
+					do {
+						long start = System.nanoTime();
+						value = method.invoke(obj, (Object[])rule[0]);
+						elapsedTimes.add(System.nanoTime() - start);
+					} while (System.nanoTime() - startTime < 50000);
 
 					if (expected == null ? value == null : expected.equals(value))
 						hits++;
 				}
-				results.setComparisonResult(clsName, methName, mp.getParameterTypes(),
-						new int[] {hits, rules.size()});
+
+				long elapsedTime = 0;
+				for (long time : elapsedTimes)
+					elapsedTime += time;
+				elapsedTime /= elapsedTimes.size();
+
+				Result r = new Result(new int[] {hits, rules.size()}, elapsedTime);
+				results.setResult(clsName, methName, mp.getParameterTypes(), r);
 			}
 		}
 
