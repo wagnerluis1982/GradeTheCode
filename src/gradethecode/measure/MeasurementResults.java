@@ -1,7 +1,5 @@
 package gradethecode.measure;
 
-import gradethecode.measure.exceptions.InvalidResultException;
-
 import java.util.Arrays;
 import java.util.Map;
 import java.util.TreeMap;
@@ -17,7 +15,12 @@ public class MeasurementResults {
 	public void setResult(String className, String methName,
 			Class<?>[] parameterTypes, Result result) {
 		String key = createKey(className, methName, parameterTypes);
-		this.results.put(key, result != null ? result : new InvalidResult());
+		this.results.put(key, result);
+	}
+
+	public void setResult(String clsName, String methName,
+			Class<?>[] parameterTypes, int code) {
+		this.setResult(clsName, methName, parameterTypes, new Result(code));
 	}
 
 	public Result getResult(String className, String methName,
@@ -33,14 +36,22 @@ public class MeasurementResults {
 	}
 
 	public static class Result {
+		protected final static int SUCCESS = 0;
+		protected final static int ERROR_RTYPE = 1;
+		protected final static int ERROR_ARGS = 2;
+		protected static final int ERROR_RULE = 3;
+
 		private int[] comparisons;
 		private long elapsedTime;
-
-		private Result() {}
+		private int code;
 
 		protected Result(int[] comparisons, long speed) {
 			this.comparisons = comparisons;
 			this.elapsedTime = speed;
+		}
+
+		private Result(int code) {
+			this.code = code;
 		}
 
 		public int[] getComparisons() {
@@ -50,17 +61,11 @@ public class MeasurementResults {
 		public long getElapsedTime() {
 			return elapsedTime;
 		}
-	}
 
-	private class InvalidResult extends Result {
-		@Override
-		public int[] getComparisons() {
-			throw new InvalidResultException();
-		}
-		@Override
-		public long getElapsedTime() {
-			throw new InvalidResultException();
-		}
-	}
 
+		public int getErrorCode() {
+			return code;
+		}
+
+	}
 }

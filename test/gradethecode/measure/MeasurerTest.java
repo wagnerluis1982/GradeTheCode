@@ -1,8 +1,9 @@
 package gradethecode.measure;
 
 import static org.junit.Assert.*;
-import static java.io.File.separator;
 import static org.hamcrest.number.OrderingComparison.*;
+import static java.io.File.separator;
+import static gradethecode.measure.Measurer.nanoSeconds;
 
 import gradethecode.SourceCode;
 import gradethecode.exceptions.ClassNotDefinedException;
@@ -115,10 +116,6 @@ public class MeasurerTest {
 	protected static InputStream resource(String name) {
 		return MeasurerTest.class.getResourceAsStream("resources"
 				+ separator + name.replaceAll("/", separator));
-	}
-
-	protected static long nanoSeconds(long millis) {
-		return millis * 1000000;
 	}
 
 	protected static <T> Set<T> asSet(T ...items) {
