@@ -48,6 +48,8 @@ public class MainWindow {
 	private AboutDialog aboutDialog;
 	private JTree tree;
 	private DefaultTreeModel treeModel;
+	private JButton btnLoadExpected;
+	private DefaultMutableTreeNode rootNode;
 
 	/**
 	 * Launch the application.
@@ -89,7 +91,11 @@ public class MainWindow {
 		menuBar.add(mnProject);
 
 		JMenuItem mntmNew = new JMenuItem("New");
-		mntmNew.setEnabled(false);
+		mntmNew.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				newProject(e);
+			}
+		});
 		mnProject.add(mntmNew);
 
 		JMenuItem mntmOpen = new JMenuItem("Open...");
@@ -142,9 +148,6 @@ public class MainWindow {
 		final JScrollPane leftPane = new JScrollPane();
 		splitPane.setLeftComponent(leftPane);
 
-		treeModel = new DefaultTreeModel(
-				new DefaultMutableTreeNode("Expected Code"), true);
-
 		// Class toolbar
 		final JToolBar classToolBar = new JToolBar();
 		classToolBar.setFloatable(false);
@@ -172,6 +175,10 @@ public class MainWindow {
 		JButton btnEditMethod = new CToolBarButton("Edit method", false);
 		methodToolBar.add(btnEditMethod);
 
+		rootNode = new DefaultMutableTreeNode("Expected Code");
+		treeModel = new DefaultTreeModel(
+				rootNode, true);
+
 		tree = new JTree(treeModel);
 		tree.setRootVisible(false);
 		tree.getSelectionModel().setSelectionMode(
@@ -191,7 +198,7 @@ public class MainWindow {
 		toolBar.setFloatable(false);
 		topPanel.add(toolBar, BorderLayout.CENTER);
 
-		JButton btnLoadExpected = new JButton("Load code");
+		btnLoadExpected = new JButton("Load code");
 		btnLoadExpected.setToolTipText("Load expected code from a src folder");
 		toolBar.add(btnLoadExpected);
 		btnLoadExpected.addActionListener(new ActionListener() {
@@ -199,6 +206,13 @@ public class MainWindow {
 				btnLoadCodeActionPerformed(e);
 			}
 		});
+	}
+
+	protected void newProject(ActionEvent e) {
+		rootNode.removeAllChildren();
+		treeModel.reload(rootNode);
+		tree.setRootVisible(false);
+		btnLoadExpected.setEnabled(true);
 	}
 
 	private void btnLoadCodeActionPerformed(ActionEvent e) {
@@ -245,25 +259,44 @@ public class MainWindow {
 			for (ClassWrapper cw : classes.values()) {
 				DefaultMutableTreeNode newNode = new DefaultMutableTreeNode(cw.getName());
 
-				for (Method method : cw.getDeclaredPublicMethods()) {
-					StringBuffer buffer = new StringBuffer(method.getName());
-					Class<?>[] types = method.getParameterTypes();
-
-					buffer.append("(");
-					if (types.length > 0) {
-						buffer.append(types[0].getCanonicalName());
-						for (int i = 1; i < types.length; i++)
-							buffer.append(", " + types[i].getCanonicalName());
-					}
-					buffer.append(")");
-
-					newNode.add(new DefaultMutableTreeNode(buffer, false));
-				}
+				for (Method method : cw.getDeclaredPublicMethods())
+					newNode.add(new DefaultMutableTreeNode(
+							methodSignature(method), false));
 
 				treeModel.insertNodeInto(newNode, (MutableTreeNode) treeModel.getRoot(), 0);
 			}
 			tree.setRootVisible(true);
 			tree.expandRow(0);
+			btnLoadExpected.setEnabled(false);
 		}
 	}
+
+	private String methodSignature(Method method) {
+		StringBuffer buffer = new StringBuffer(method.getName());
+		Class<?>[] types = method.getParameterTypes();
+
+		buffer.append("(");
+		if (types.length > 0) {
+			buffer.append(prettyType(types[0]));
+			for (int i = 1; i < types.length; i++)
+				buffer.append(", " + prettyType(types[i]));
+		}
+		buffer.append(")");
+		buffer.append(": ");
+
+		buffer.append(prettyType(method.getReturnType()));
+
+		return buffer.toString();
+	}
+
+	private String prettyType(Class<?> returnType) {
+		String name = returnType.getName();
+		if (name.startsWith("java.lang."))
+			return name.replaceFirst("java.lang.", "");
+
+		return name;
+	}
+
+
+
 }
