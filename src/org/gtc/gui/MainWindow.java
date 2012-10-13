@@ -48,6 +48,8 @@ public class MainWindow {
 
 	private JFrame mainFrame;
 	private AboutDialog aboutDialog;
+	private JTree tree;
+	private DefaultTreeModel treeModel;
 
 	/**
 	 * Launch the application.
@@ -126,14 +128,12 @@ public class MainWindow {
 		});
 		mnHelp.add(mntmAbout);
 
-		JPanel panel = new JPanel();
-		mainFrame.getContentPane().add(panel, BorderLayout.NORTH);
-		panel.setLayout(new BorderLayout(0, 0));
+		JPanel topPanel = new JPanel(new BorderLayout(0, 0));
+		mainFrame.getContentPane().add(topPanel, BorderLayout.NORTH);
 
-		String message = "Define the ideal code manually or optionally load it from the src directory";
-		JLabel lblDefineTheExpected = new JLabel(message);
-		lblDefineTheExpected.setToolTipText(message);
-		panel.add(lblDefineTheExpected, BorderLayout.NORTH);
+		JLabel lblMsgIdealCode = new JLabel("Define the ideal code manually " +
+				"or optionally load it from the src directory");
+		topPanel.add(lblMsgIdealCode, BorderLayout.NORTH);
 
 		JSplitPane splitPane = new JSplitPane();
 		mainFrame.getContentPane().add(splitPane, BorderLayout.CENTER);
@@ -144,8 +144,7 @@ public class MainWindow {
 		final JScrollPane leftPane = new JScrollPane();
 		splitPane.setLeftComponent(leftPane);
 
-		// Tree node root
-		final DefaultTreeModel treeModel = new DefaultTreeModel(
+		treeModel = new DefaultTreeModel(
 				new DefaultMutableTreeNode("Ideal Code"));
 
 		// Class toolbar
@@ -175,14 +174,13 @@ public class MainWindow {
 		JButton btnEditMethod = new CToolBarButton("Edit method", false);
 		methodToolBar.add(btnEditMethod);
 
-		// Tree of classes and methods
-		final JTree tree = new JTree(treeModel);
+		tree = new JTree(treeModel);
 		tree.getSelectionModel().setSelectionMode(
 				TreeSelectionModel.SINGLE_TREE_SELECTION);
 		tree.addTreeSelectionListener(new TreeSelectionListener() {
 			public void valueChanged(TreeSelectionEvent e) {
-				boolean rootSelected = tree.getRowForPath(e.getPath()) == 0;
-				leftPane.setColumnHeaderView(rootSelected ? classToolBar
+				int pathCount = e.getPath().getPathCount();
+				leftPane.setColumnHeaderView(pathCount <= 2 ? classToolBar
 						: methodToolBar);
 			}
 		});
@@ -193,80 +191,84 @@ public class MainWindow {
 
 		JToolBar toolBar = new JToolBar();
 		toolBar.setFloatable(false);
-		panel.add(toolBar, BorderLayout.CENTER);
+		topPanel.add(toolBar, BorderLayout.CENTER);
 
 		JButton btnLoadIdeal = new JButton("Load ideal");
+		btnLoadIdeal.setToolTipText("Load ideal code from a src folder");
 		toolBar.add(btnLoadIdeal);
 		btnLoadIdeal.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				JFileChooser fileChooser = new JFileChooser();
-				fileChooser.setMultiSelectionEnabled(false);
-				fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-
-				// If any directory was selected
-				if (fileChooser.showOpenDialog(mainFrame) == JFileChooser.APPROVE_OPTION) {
-					// Compile files
-					final Map<String, ClassWrapper> classes;
-					try {
-						File selectedFile = fileChooser.getSelectedFile();
-						File[] javaFiles = Util.listFilesRecursive(selectedFile, "java");
-
-						Compiler compiler = new Compiler();
-						for (File javafile : javaFiles)
-							compiler.addSourceCode(new SourceCode(javafile));
-
-						classes = compiler.compile();
-					} catch (FileNotReadException ex) {
-						JOptionPane.showMessageDialog(mainFrame, "Could not read the file",
-								"Error opening file", JOptionPane.ERROR_MESSAGE);
-						return;
-					} catch (EmptyCodeException ex) {
-						JOptionPane.showMessageDialog(mainFrame, "The file is empty",
-								"Error opening file", JOptionPane.ERROR_MESSAGE);
-						return;
-					} catch (ClassNotDefinedException ex) {
-						JOptionPane.showMessageDialog(mainFrame, "A class was not defined",
-								"Error opening file", JOptionPane.ERROR_MESSAGE);
-						return;
-					} catch (IOException ex) {
-						JOptionPane.showMessageDialog(mainFrame, "Temporary dir could not be created",
-								"Error", JOptionPane.ERROR_MESSAGE);
-						return;
-					} catch (DuplicateCodeException ex) {
-						JOptionPane.showMessageDialog(mainFrame, ex.getMessage(),
-								"Unexpected error", JOptionPane.ERROR_MESSAGE);
-						return;
-					} catch (CompilerException ex) {
-						JOptionPane.showMessageDialog(mainFrame, ex.getMessage(),
-								"Unexpected error", JOptionPane.ERROR_MESSAGE);
-						return;
-					}
-
-					// Use compiled classes to populate the tree
-					for (ClassWrapper cw : classes.values()) {
-						DefaultMutableTreeNode newNode = new DefaultMutableTreeNode(cw.getName());
-
-						for (Method method : cw.getDeclaredPublicMethods()) {
-							StringBuffer buffer = new StringBuffer(method.getName());
-							Class<?>[] types = method.getParameterTypes();
-
-							buffer.append("(");
-							if (types.length > 0) {
-								buffer.append(types[0].getCanonicalName());
-								for (int i = 1; i < types.length; i++)
-									buffer.append(", " + types[i].getCanonicalName());
-							}
-							buffer.append(")");
-
-							newNode.add(new DefaultMutableTreeNode(buffer));
-						}
-
-						treeModel.insertNodeInto(newNode, (MutableTreeNode) treeModel.getRoot(), 0);
-					}
-					tree.expandRow(0);
-				}
+				btnLoadIdealActionPerformed(e);
 			}
 		});
-		btnLoadIdeal.setToolTipText("Load ideal code from a src folder");
+	}
+
+	private void btnLoadIdealActionPerformed(ActionEvent e) {
+		final JFileChooser fileChooser = new JFileChooser();
+		fileChooser.setMultiSelectionEnabled(false);
+		fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+
+		// If any directory was selected
+		if (fileChooser.showOpenDialog(mainFrame) == JFileChooser.APPROVE_OPTION) {
+			// Compile files
+			final Map<String, ClassWrapper> classes;
+			try {
+				File selectedFile = fileChooser.getSelectedFile();
+				File[] javaFiles = Util.listFilesRecursive(selectedFile, "java");
+
+				Compiler compiler = new Compiler();
+				for (File javafile : javaFiles)
+					compiler.addSourceCode(new SourceCode(javafile));
+
+				classes = compiler.compile();
+			} catch (FileNotReadException ex) {
+				JOptionPane.showMessageDialog(mainFrame, "Could not read the file",
+						"Error opening file", JOptionPane.ERROR_MESSAGE);
+				return;
+			} catch (EmptyCodeException ex) {
+				JOptionPane.showMessageDialog(mainFrame, "The file is empty",
+						"Error opening file", JOptionPane.ERROR_MESSAGE);
+				return;
+			} catch (ClassNotDefinedException ex) {
+				JOptionPane.showMessageDialog(mainFrame, "A class was not defined",
+						"Error opening file", JOptionPane.ERROR_MESSAGE);
+				return;
+			} catch (IOException ex) {
+				JOptionPane.showMessageDialog(mainFrame, "Temporary dir could not be created",
+						"Error", JOptionPane.ERROR_MESSAGE);
+				return;
+			} catch (DuplicateCodeException ex) {
+				JOptionPane.showMessageDialog(mainFrame, ex.getMessage(),
+						"Unexpected error", JOptionPane.ERROR_MESSAGE);
+				return;
+			} catch (CompilerException ex) {
+				JOptionPane.showMessageDialog(mainFrame, ex.getMessage(),
+						"Unexpected error", JOptionPane.ERROR_MESSAGE);
+				return;
+			}
+
+			// Use compiled classes to populate the tree
+			for (ClassWrapper cw : classes.values()) {
+				DefaultMutableTreeNode newNode = new DefaultMutableTreeNode(cw.getName());
+
+				for (Method method : cw.getDeclaredPublicMethods()) {
+					StringBuffer buffer = new StringBuffer(method.getName());
+					Class<?>[] types = method.getParameterTypes();
+
+					buffer.append("(");
+					if (types.length > 0) {
+						buffer.append(types[0].getCanonicalName());
+						for (int i = 1; i < types.length; i++)
+							buffer.append(", " + types[i].getCanonicalName());
+					}
+					buffer.append(")");
+
+					newNode.add(new DefaultMutableTreeNode(buffer));
+				}
+
+				treeModel.insertNodeInto(newNode, (MutableTreeNode) treeModel.getRoot(), 0);
+			}
+			tree.expandRow(0);
+		}
 	}
 }
