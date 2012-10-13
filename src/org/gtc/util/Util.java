@@ -81,7 +81,10 @@ public class Util {
 			+ baseName + "0 to " + baseName + (TEMP_DIR_ATTEMPTS - 1) + ')');
 	}
 
-	  /** Maximum loop count when creating temp directories. */
-	  private static final int TEMP_DIR_ATTEMPTS = 10000;
+	/**
+	 * Maximum loop count when creating temp directories.
+	 * NOTE: This field is needed for static method createTempDir above.
+	 */
+	private static final int TEMP_DIR_ATTEMPTS = 10000;
 
 }
