@@ -180,8 +180,7 @@ public class MainWindow {
 		tree.addTreeSelectionListener(new TreeSelectionListener() {
 			public void valueChanged(TreeSelectionEvent e) {
 				int pathCount = e.getPath().getPathCount();
-				leftPane.setColumnHeaderView(pathCount <= 2 ? classToolBar
-						: methodToolBar);
+				leftPane.setColumnHeaderView(pathCount <= 2 ? classToolBar : methodToolBar);
 			}
 		});
 		leftPane.setViewportView(tree);
