@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
-import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -25,6 +24,7 @@ import javax.tools.JavaFileObject;
 import javax.tools.ToolProvider;
 
 import org.gtc.sourcecode.SourceCode;
+import org.gtc.util.Util;
 
 public class Compiler {
 	private File targetDir;
@@ -39,7 +39,7 @@ public class Compiler {
 	}
 
 	public Compiler() throws IOException {
-		File tempDir = Files.createTempDirectory("gtc_").toFile();
+		File tempDir = Util.createTempDir();
 		tempDir.deleteOnExit();
 
 		this.targetDir = tempDir;

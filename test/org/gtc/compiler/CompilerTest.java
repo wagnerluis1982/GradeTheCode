@@ -1,16 +1,15 @@
 package org.gtc.compiler;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
 import java.util.Map;
 
-import org.gtc.compiler.Compiler;
-import org.gtc.compiler.CompilerException;
 import org.gtc.sourcecode.ClassNotDefinedException;
 import org.gtc.sourcecode.SourceCode;
+import org.gtc.util.Util;
 import org.junit.Test;
 
 public class CompilerTest {
@@ -38,7 +37,7 @@ public class CompilerTest {
 
 	@Test
 	public void testCompileInformingTarget() throws IOException, CompilerException, ClassNotDefinedException {
-		File targetDir = Files.createTempDirectory("gtcTest_").toFile();
+		File targetDir = Util.createTempDir();
 		targetDir.deleteOnExit();
 
 		Compiler compiler = new Compiler(targetDir);

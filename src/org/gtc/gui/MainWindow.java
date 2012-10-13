@@ -130,7 +130,7 @@ public class MainWindow {
 		mainFrame.getContentPane().add(panel, BorderLayout.NORTH);
 		panel.setLayout(new BorderLayout(0, 0));
 
-		String message = "Define the model classes to grade or optionally load the model from the src directory";
+		String message = "Define the basis classes to grade or optionally load it from the src directory";
 		JLabel lblDefineTheExpected = new JLabel(message);
 		lblDefineTheExpected.setToolTipText(message);
 		panel.add(lblDefineTheExpected, BorderLayout.NORTH);
@@ -146,7 +146,7 @@ public class MainWindow {
 
 		// Tree node root
 		final DefaultTreeModel treeModel = new DefaultTreeModel(
-				new DefaultMutableTreeNode("Model Classes"));
+				new DefaultMutableTreeNode("Basis Classes"));
 
 		// Class toolbar
 		final JToolBar classToolBar = new JToolBar();
@@ -195,9 +195,9 @@ public class MainWindow {
 		toolBar.setFloatable(false);
 		panel.add(toolBar, BorderLayout.CENTER);
 
-		JButton btnLoadClasses = new JButton("Load model");
-		toolBar.add(btnLoadClasses);
-		btnLoadClasses.addActionListener(new ActionListener() {
+		JButton btnLoadBasis = new JButton("Load basis");
+		toolBar.add(btnLoadBasis);
+		btnLoadBasis.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				JFileChooser fileChooser = new JFileChooser();
 				fileChooser.setMultiSelectionEnabled(false);
@@ -267,6 +267,6 @@ public class MainWindow {
 				}
 			}
 		});
-		btnLoadClasses.setToolTipText("Load model classes from files");
+		btnLoadBasis.setToolTipText("Load basis classes from a src folder");
 	}
 }
