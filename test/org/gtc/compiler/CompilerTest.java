@@ -22,8 +22,7 @@ public class CompilerTest {
 			ClassNotDefinedException, NoSuchMethodException, SecurityException,
 			IllegalAccessException, IllegalArgumentException,
 			CallMethodException {
-		Compiler compiler = new Compiler();
-		compiler.addSourceCode(new SourceCode(simpleCode));
+		Compiler compiler = new Compiler(new SourceCode(simpleCode));
 
 		Map<String, ClassWrapper> classes = compiler.compile();
 		assertEquals(1, classes.size());
@@ -40,8 +39,7 @@ public class CompilerTest {
 		File targetDir = Util.createTempDir();
 		targetDir.deleteOnExit();
 
-		Compiler compiler = new Compiler(targetDir);
-		compiler.addSourceCode(new SourceCode(simpleCode));
+		Compiler compiler = new Compiler(targetDir, new SourceCode(simpleCode));
 		compiler.compile();
 
 		assertTrue(targetDir.exists());

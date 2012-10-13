@@ -30,20 +30,34 @@ public class Compiler {
 	private File targetDir;
 	private Set<SourceCode> codes;
 
-	public Compiler(File targetDir) throws CompilerException {
+	public Compiler(File targetDir, SourceCode ...codes) throws InvalidTargetException, DuplicatedCodeException {
 		if (!(targetDir.isDirectory() && targetDir.canWrite()))
-			throw new CompilerException("invalid target directory");
+			throw new InvalidTargetException("invalid target directory");
 
-		this.targetDir = targetDir;
-		this.codes = new HashSet<SourceCode>();
+		initialize(targetDir, codes);
 	}
 
-	public Compiler() throws IOException {
-		File tempDir = Util.createTempDir();
-		tempDir.deleteOnExit();
+	public Compiler(SourceCode ...codes) throws IOException, DuplicatedCodeException {
+		File tempDir = null;
+		try {
+			tempDir = Util.createTempDir();
+		} catch (IllegalStateException e) {
+			throw new IOException(e.getMessage());
+		} finally {
+			tempDir.deleteOnExit();
+		}
 
-		this.targetDir = tempDir;
-		this.codes = new HashSet<SourceCode>();
+		initialize(tempDir, codes);
+	}
+
+	private void initialize(File dir, SourceCode ...codes) throws DuplicatedCodeException {
+		this.targetDir = dir;
+		this.codes = new HashSet<SourceCode>(Arrays.asList(codes));
+
+		if (this.codes.size() != codes.length)
+			throw new DuplicatedCodeException("duplicated code detected");
+		else if (this.codes.contains(null))
+			throw new IllegalArgumentException("null found in the set");
 	}
 
 	public Map<String, ClassWrapper> compile() throws CompilerException {
@@ -74,39 +88,6 @@ public class Compiler {
 		}
 	}
 
-	private void deleteDir(File dir, boolean including) {
-		if (dir.exists()) {
-			File[] files = dir.listFiles();
-
-			for (File f : files) {
-				if (f.isDirectory())
-					this.deleteDir(f, true);
-				else
-					f.delete();
-			}
-		}
-
-		if (including)
-			dir.delete();
-	}
-
-	public void reset() {
-		this.codes.clear();
-	}
-
-	public void addSourceCode(SourceCode ...sourceCodes) throws DuplicateCodeException {
-		for (SourceCode code : sourceCodes)
-			if (this.codes.contains(code))
-				throw new DuplicateCodeException(code.getQualifiedName()
-						+ " already exists in this set");
-
-		this.codes.addAll(Arrays.asList(sourceCodes));
-	}
-
-	public File getTargetDir() {
-		return targetDir;
-	}
-
 	private Map<String, ClassWrapper> loadClasses() throws ClassNotFoundException {
 		Map<String, ClassWrapper> classesMap = new HashMap<String, ClassWrapper>();
 
@@ -125,6 +106,26 @@ public class Compiler {
 		}
 
 		return Collections.unmodifiableMap(classesMap);
+	}
+
+	private void deleteDir(File dir, boolean including) {
+		if (dir.exists()) {
+			File[] files = dir.listFiles();
+
+			for (File f : files) {
+				if (f.isDirectory())
+					this.deleteDir(f, true);
+				else
+					f.delete();
+			}
+		}
+
+		if (including)
+			dir.delete();
+	}
+
+	public File getTargetDir() {
+		return targetDir;
 	}
 
 }

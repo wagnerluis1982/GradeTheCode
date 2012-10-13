@@ -35,8 +35,6 @@ import javax.swing.tree.TreeSelectionModel;
 
 import org.gtc.compiler.ClassWrapper;
 import org.gtc.compiler.Compiler;
-import org.gtc.compiler.CompilerException;
-import org.gtc.compiler.DuplicateCodeException;
 import org.gtc.gui.components.CToolBarButton;
 import org.gtc.sourcecode.ClassNotDefinedException;
 import org.gtc.sourcecode.EmptyCodeException;
@@ -175,6 +173,7 @@ public class MainWindow {
 		methodToolBar.add(btnEditMethod);
 
 		tree = new JTree(treeModel);
+		tree.setRootVisible(false);
 		tree.getSelectionModel().setSelectionMode(
 				TreeSelectionModel.SINGLE_TREE_SELECTION);
 		tree.addTreeSelectionListener(new TreeSelectionListener() {
@@ -214,11 +213,11 @@ public class MainWindow {
 			try {
 				File selectedFile = fileChooser.getSelectedFile();
 				File[] javaFiles = Util.listFilesRecursive(selectedFile, "java");
+				SourceCode[] codes = new SourceCode[javaFiles.length];
+				for (int i = 0; i < javaFiles.length; i++)
+					codes[i] = new SourceCode(javaFiles[i]);
 
-				Compiler compiler = new Compiler();
-				for (File javafile : javaFiles)
-					compiler.addSourceCode(new SourceCode(javafile));
-
+				Compiler compiler = new Compiler(codes);
 				classes = compiler.compile();
 			} catch (FileNotReadException ex) {
 				JOptionPane.showMessageDialog(mainFrame, "Could not read the file",
@@ -236,11 +235,7 @@ public class MainWindow {
 				JOptionPane.showMessageDialog(mainFrame, "Temporary dir could not be created",
 						"Error", JOptionPane.ERROR_MESSAGE);
 				return;
-			} catch (DuplicateCodeException ex) {
-				JOptionPane.showMessageDialog(mainFrame, ex.getMessage(),
-						"Unexpected error", JOptionPane.ERROR_MESSAGE);
-				return;
-			} catch (CompilerException ex) {
+			} catch (Exception ex) {
 				JOptionPane.showMessageDialog(mainFrame, ex.getMessage(),
 						"Unexpected error", JOptionPane.ERROR_MESSAGE);
 				return;
@@ -267,6 +262,7 @@ public class MainWindow {
 
 				treeModel.insertNodeInto(newNode, (MutableTreeNode) treeModel.getRoot(), 0);
 			}
+			tree.setRootVisible(true);
 			tree.expandRow(0);
 		}
 	}

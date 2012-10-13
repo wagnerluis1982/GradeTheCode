@@ -6,11 +6,11 @@ import java.lang.reflect.Method;
 public class Instance {
 
 	private Class<?> javaClass;
-	private Object realInstance;
+	private Object actualInstance;
 
 	protected Instance(Class<?> javaClass, Object realInstance) {
 		this.javaClass = javaClass;
-		this.realInstance = realInstance;
+		this.actualInstance = realInstance;
 	}
 
 	public Object call(String name, Object... args)
@@ -25,7 +25,7 @@ public class Instance {
 		// try to invoke method
 		try {
 			Method method = this.javaClass.getDeclaredMethod(name, parameterTypes);
-			return method.invoke(this.realInstance, args);
+			return method.invoke(this.actualInstance, args);
 		} catch (InvocationTargetException e) {
 			throw new CallMethodException("unexpected error");
 		}

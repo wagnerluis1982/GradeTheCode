@@ -1,0 +1,29 @@
+package com.example;
+
+public class CalculatorTest {
+
+    private double currentNumber;
+
+    public CalculatorTest(double currentNumber) {
+    	this.currentNumber = currentNumber;
+    }
+
+	public double getCurrentNumber() {
+		sleep(2);
+		return this.currentNumber;
+	}
+
+	public double plus(double newNumber) {
+		this.currentNumber += newNumber;
+		return this.getCurrentNumber();
+	}
+
+    private void sleep(int seconds) {
+    	try {
+    		Thread.sleep(seconds);
+    	} catch (InterruptedException e) {
+    		throw new RuntimeException();
+    	}
+    }
+
+}
