@@ -37,7 +37,7 @@ import org.gtc.compiler.ClassWrapper;
 import org.gtc.compiler.Compiler;
 import org.gtc.compiler.CompilerException;
 import org.gtc.compiler.DuplicateCodeException;
-import org.gtc.gui.components.JToolbarButton;
+import org.gtc.gui.components.CToolBarButton;
 import org.gtc.sourcecode.ClassNotDefinedException;
 import org.gtc.sourcecode.EmptyCodeException;
 import org.gtc.sourcecode.FileNotReadException;
@@ -130,7 +130,7 @@ public class MainWindow {
 		mainFrame.getContentPane().add(panel, BorderLayout.NORTH);
 		panel.setLayout(new BorderLayout(0, 0));
 
-		String message = "Define the basis classes to grade or optionally load it from the src directory";
+		String message = "Define the ideal code manually or optionally load it from the src directory";
 		JLabel lblDefineTheExpected = new JLabel(message);
 		lblDefineTheExpected.setToolTipText(message);
 		panel.add(lblDefineTheExpected, BorderLayout.NORTH);
@@ -146,33 +146,33 @@ public class MainWindow {
 
 		// Tree node root
 		final DefaultTreeModel treeModel = new DefaultTreeModel(
-				new DefaultMutableTreeNode("Basis Classes"));
+				new DefaultMutableTreeNode("Ideal Code"));
 
 		// Class toolbar
 		final JToolBar classToolBar = new JToolBar();
 		classToolBar.setFloatable(false);
 		leftPane.setColumnHeaderView(classToolBar);
 
-		JButton btnNewClass = new JToolbarButton("New class", false);
+		JButton btnNewClass = new CToolBarButton("New class", false);
 		classToolBar.add(btnNewClass);
 
-		JButton btnEditClass = new JToolbarButton("Edit class", false);
+		JButton btnEditClass = new CToolBarButton("Edit class", false);
 		classToolBar.add(btnEditClass);
 
-		JButton btnDelClass = new JToolbarButton("Del class", false);
+		JButton btnDelClass = new CToolBarButton("Del class", false);
 		classToolBar.add(btnDelClass);
 
 		// Method toolbar
 		final JToolBar methodToolBar = new JToolBar();
 		methodToolBar.setFloatable(false);
 
-		JButton btnNewMethod = new JToolbarButton("New method", false);
+		JButton btnNewMethod = new CToolBarButton("New method", false);
 		methodToolBar.add(btnNewMethod);
 
-		JButton btnDelMethod = new JToolbarButton("Del method", false);
+		JButton btnDelMethod = new CToolBarButton("Del method", false);
 		methodToolBar.add(btnDelMethod);
 
-		JButton btnEditMethod = new JToolbarButton("Edit method", false);
+		JButton btnEditMethod = new CToolBarButton("Edit method", false);
 		methodToolBar.add(btnEditMethod);
 
 		// Tree of classes and methods
@@ -195,9 +195,9 @@ public class MainWindow {
 		toolBar.setFloatable(false);
 		panel.add(toolBar, BorderLayout.CENTER);
 
-		JButton btnLoadBasis = new JButton("Load basis");
-		toolBar.add(btnLoadBasis);
-		btnLoadBasis.addActionListener(new ActionListener() {
+		JButton btnLoadIdeal = new JButton("Load ideal");
+		toolBar.add(btnLoadIdeal);
+		btnLoadIdeal.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				JFileChooser fileChooser = new JFileChooser();
 				fileChooser.setMultiSelectionEnabled(false);
@@ -267,6 +267,6 @@ public class MainWindow {
 				}
 			}
 		});
-		btnLoadBasis.setToolTipText("Load basis classes from a src folder");
+		btnLoadIdeal.setToolTipText("Load ideal code from a src folder");
 	}
 }
