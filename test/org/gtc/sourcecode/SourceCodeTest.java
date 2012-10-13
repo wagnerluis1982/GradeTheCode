@@ -85,6 +85,7 @@ public class SourceCodeTest {
 				"}\n");
 
 		assertEquals("", sc.getPackageName());
+		assertEquals("Teste", sc.getQualifiedName());
 	}
 
 	private void testJavaFileObject(SourceCode sc) throws IOException, SourceCodeException {

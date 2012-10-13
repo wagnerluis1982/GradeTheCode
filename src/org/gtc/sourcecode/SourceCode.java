@@ -80,7 +80,7 @@ public class SourceCode implements Comparable<SourceCode> {
 		else
 			throw new ClassNotDefinedException("code has not a defined class");
 
-		if (this.packageName != null)
+		if (this.packageName != "")
 			this.qualifiedName = this.packageName + "." + this.className;
 		else
 			this.qualifiedName = this.className;

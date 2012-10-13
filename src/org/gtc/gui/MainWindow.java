@@ -129,9 +129,9 @@ public class MainWindow {
 		JPanel topPanel = new JPanel(new BorderLayout(0, 0));
 		mainFrame.getContentPane().add(topPanel, BorderLayout.NORTH);
 
-		JLabel lblMsgIdealCode = new JLabel("Define the ideal code manually " +
-				"or optionally load it from the src directory");
-		topPanel.add(lblMsgIdealCode, BorderLayout.NORTH);
+		JLabel lblMsgExpectCode = new JLabel("Define the expected code " +
+				"manually or optionally load it from the src directory");
+		topPanel.add(lblMsgExpectCode, BorderLayout.NORTH);
 
 		JSplitPane splitPane = new JSplitPane();
 		mainFrame.getContentPane().add(splitPane, BorderLayout.CENTER);
@@ -143,7 +143,7 @@ public class MainWindow {
 		splitPane.setLeftComponent(leftPane);
 
 		treeModel = new DefaultTreeModel(
-				new DefaultMutableTreeNode("Ideal Code"));
+				new DefaultMutableTreeNode("Expected Code"), true);
 
 		// Class toolbar
 		final JToolBar classToolBar = new JToolBar();
@@ -191,17 +191,17 @@ public class MainWindow {
 		toolBar.setFloatable(false);
 		topPanel.add(toolBar, BorderLayout.CENTER);
 
-		JButton btnLoadIdeal = new JButton("Load ideal");
-		btnLoadIdeal.setToolTipText("Load ideal code from a src folder");
-		toolBar.add(btnLoadIdeal);
-		btnLoadIdeal.addActionListener(new ActionListener() {
+		JButton btnLoadExpected = new JButton("Load code");
+		btnLoadExpected.setToolTipText("Load expected code from a src folder");
+		toolBar.add(btnLoadExpected);
+		btnLoadExpected.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				btnLoadIdealActionPerformed(e);
+				btnLoadCodeActionPerformed(e);
 			}
 		});
 	}
 
-	private void btnLoadIdealActionPerformed(ActionEvent e) {
+	private void btnLoadCodeActionPerformed(ActionEvent e) {
 		final JFileChooser fileChooser = new JFileChooser();
 		fileChooser.setMultiSelectionEnabled(false);
 		fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
@@ -257,7 +257,7 @@ public class MainWindow {
 					}
 					buffer.append(")");
 
-					newNode.add(new DefaultMutableTreeNode(buffer));
+					newNode.add(new DefaultMutableTreeNode(buffer, false));
 				}
 
 				treeModel.insertNodeInto(newNode, (MutableTreeNode) treeModel.getRoot(), 0);
