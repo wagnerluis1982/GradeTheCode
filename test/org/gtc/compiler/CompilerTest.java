@@ -53,7 +53,7 @@ public class CompilerTest {
 
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
 		try {
-			compiler.compile(new PrintStream(out), null);
+			compiler.compile(new PrintStream(out));
 		} catch (CompilerException e) {}
 
 		assertTrue(out.size() + " isn't greater than 0", out.size() > 0);

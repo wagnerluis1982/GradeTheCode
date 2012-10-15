@@ -63,7 +63,7 @@ public class SourceCodeTest {
 	private void testIdentifyPackage(SourceCode sc) throws SourceCodeException {
 		assertEquals("com.test", sc.getPackageName());
 
-		sc = new SourceCode("// Comment\n// Comment\n" + simpleCode);
+		sc = new SourceCode("// package org.test; \n// Comment\n" + simpleCode);
 		assertEquals("com.test", sc.getPackageName());
 
 		sc = new SourceCode("/* Comment\n   Comment*/\n\n" +
@@ -72,6 +72,23 @@ public class SourceCodeTest {
 	}
 
 	private void testIdentifyClass(SourceCode sc) throws SourceCodeException {
+		assertEquals("Test", sc.getClassName());
+	}
+
+	@Test
+	public void testIdentifyClass() throws FileNotReadException, EmptyCodeException,
+			ClassNotDefinedException {
+		SourceCode sc = new SourceCode(
+				"package com.test;\n\n" +
+				"public class Test {\n" +
+				"	public int getNumber() {\n" +
+				"		return 1000;\n" +
+				"	}\n" +
+				"	public int getNumberSquared(){\n" +
+				"		// class CommentToFool\n" +
+				"		return getNumber() * getNumber();\n" +
+				"	}\n" +
+				"}\n");
 		assertEquals("Test", sc.getClassName());
 	}
 

@@ -61,9 +61,7 @@ public class Compiler {
 			throw new IllegalArgumentException("null found in the set");
 	}
 
-	public Map<String, ClassWrapper> compile(PrintStream out,
-			DiagnosticCollector<JavaFileObject> diagnostics)
-			throws CompilerException {
+	public Map<String, ClassWrapper> compile(PrintStream out) throws CompilerException {
 		List<JavaFileObject> fileObjects = new ArrayList<JavaFileObject>();
 		for (SourceCode sourceCode : this.codes)
 			fileObjects.add(sourceCode.getJavaFileObject());
@@ -72,8 +70,8 @@ public class Compiler {
 		List<String> options = Arrays.asList("-d", this.targetDir.getAbsolutePath());
 
 		// Use diagnostics passed by argument or a local if arg is null
-		diagnostics = diagnostics != null ? diagnostics
-				: new DiagnosticCollector<JavaFileObject>();
+		DiagnosticCollector<JavaFileObject> diagnostics =
+				new DiagnosticCollector<JavaFileObject>();
 
 		JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
 		JavaFileManager fileManager = compiler.getStandardFileManager(null,
@@ -99,7 +97,7 @@ public class Compiler {
 	}
 
 	public Map<String, ClassWrapper> compile() throws CompilerException {
-		return this.compile(null, null);
+		return this.compile(null);
 	}
 
 	private Map<String, ClassWrapper> loadClasses() throws ClassNotFoundException {
