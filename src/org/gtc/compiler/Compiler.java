@@ -2,6 +2,7 @@ package org.gtc.compiler;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.PrintStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
@@ -60,24 +61,33 @@ public class Compiler {
 			throw new IllegalArgumentException("null found in the set");
 	}
 
-	public Map<String, ClassWrapper> compile() throws CompilerException {
-		List<JavaFileObject> classes = new ArrayList<JavaFileObject>();
+	public Map<String, ClassWrapper> compile(PrintStream out,
+			DiagnosticCollector<JavaFileObject> diagnostics)
+			throws CompilerException {
+		List<JavaFileObject> fileObjects = new ArrayList<JavaFileObject>();
 		for (SourceCode sourceCode : this.codes)
-			classes.add(sourceCode.getJavaFileObject());
+			fileObjects.add(sourceCode.getJavaFileObject());
+
+		// Compilation options
+		List<String> options = Arrays.asList("-d", this.targetDir.getAbsolutePath());
+
+		// Use diagnostics passed by argument or a local if arg is null
+		diagnostics = diagnostics != null ? diagnostics
+				: new DiagnosticCollector<JavaFileObject>();
 
 		JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
 		JavaFileManager fileManager = compiler.getStandardFileManager(null,
 				Locale.getDefault(), null);
-		List<String> options = Arrays.asList("-d", this.targetDir.getAbsolutePath());
-		DiagnosticCollector<JavaFileObject> diagnostics =
-				new DiagnosticCollector<JavaFileObject>();
 		CompilationTask compilerTask = compiler.getTask(null, fileManager,
-				diagnostics, options, null, classes);
+				diagnostics, options, null, fileObjects);
 
-		if (!compilerTask.call()) {
-			for (Diagnostic<?> d : diagnostics.getDiagnostics())
-				System.out.printf("Error on line %d in %s", d.getLineNumber(), d);
-		}
+		// Call compiler
+		compilerTask.call();
+
+		// Use an OutputStream passed by argument or stdout
+		out = out != null ? out : System.out;
+		for (Diagnostic<?> d : diagnostics.getDiagnostics())
+			out.printf("Error on line %d in %s", d.getLineNumber(), d);
 
 		try {
 			return loadClasses();
@@ -86,6 +96,10 @@ public class Compiler {
 		} finally {
 			this.deleteDir(this.targetDir, false);
 		}
+	}
+
+	public Map<String, ClassWrapper> compile() throws CompilerException {
+		return this.compile(null, null);
 	}
 
 	private Map<String, ClassWrapper> loadClasses() throws ClassNotFoundException {

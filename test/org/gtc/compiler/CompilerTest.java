@@ -1,10 +1,11 @@
 package org.gtc.compiler;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.PrintStream;
 import java.util.Map;
 
 import org.gtc.sourcecode.ClassNotDefinedException;
@@ -14,8 +15,8 @@ import org.junit.Test;
 
 public class CompilerTest {
 
-	private static String simpleCode = "package com.teste;" +
-			"public class Teste { public int getNumber() { return 1000; } }";
+	private static String simpleCode = "package com.test;" +
+			"public class Test { public int getNumber() { return 1000; } }";
 
 	@Test
 	public void testCompile() throws IOException, CompilerException,
@@ -27,8 +28,9 @@ public class CompilerTest {
 		Map<String, ClassWrapper> classes = compiler.compile();
 		assertEquals(1, classes.size());
 
-		ClassWrapper cw = classes.get("com.teste.Teste");
-		assertEquals("com.teste.Teste", cw.getName());
+		ClassWrapper cw = classes.get("com.test.Test");
+		assertNotNull(cw);
+		assertEquals("com.test.Test", cw.getName());
 
 		Instance instance = cw.newInstance();
 		assertEquals(1000, instance.call("getNumber"));
@@ -43,6 +45,18 @@ public class CompilerTest {
 		compiler.compile();
 
 		assertTrue(targetDir.exists());
+	}
+
+	@Test
+	public void testCompileOut() throws ClassNotDefinedException, IOException, DuplicatedCodeException {
+		Compiler compiler = new Compiler(new SourceCode(simpleCode + "invalidToken"));
+
+		ByteArrayOutputStream out = new ByteArrayOutputStream();
+		try {
+			compiler.compile(new PrintStream(out), null);
+		} catch (CompilerException e) {}
+
+		assertTrue(out.size() + " isn't greater than 0", out.size() > 0);
 	}
 
 }
