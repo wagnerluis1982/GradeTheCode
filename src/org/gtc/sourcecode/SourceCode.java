@@ -1,91 +1,57 @@
 package org.gtc.sourcecode;
 
 
+import japa.parser.JavaParser;
+import japa.parser.ParseException;
+import japa.parser.ast.CompilationUnit;
+import japa.parser.ast.PackageDeclaration;
+
+import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
-import java.util.NoSuchElementException;
-import java.util.Scanner;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import javax.tools.JavaFileObject;
 import javax.tools.SimpleJavaFileObject;
 
 public class SourceCode implements Comparable<SourceCode> {
 
-	private String code;
+	private CompilationUnit code;
 	private String packageName;
 	private String className;
 	private JavaFileObject javaFileObject;
 	private String qualifiedName;
 
-	public SourceCode(String code) throws ClassNotDefinedException {
+	public SourceCode(String code) throws ParseException {
 		if (code == null)
-			throw new IllegalArgumentException("code should not be null");
+			throw new IllegalArgumentException("code could not be null");
 
-		this.identifyElements(code);
+		this.identifyElements(new ByteArrayInputStream(code.getBytes()));
 	}
 
-	public SourceCode(InputStream stream) throws EmptyCodeException,
-			ClassNotDefinedException {
-		try {
-			this.identifyElements(new Scanner(stream).useDelimiter("\\A").next());
-		} catch (NoSuchElementException e) {
-			throw new EmptyCodeException("empty source code");
-		}
+	public SourceCode(InputStream stream) throws ParseException {
+		if (stream == null)
+			throw new IllegalArgumentException("argument could not be null");
+
+		this.identifyElements(stream);
 	}
 
-	public SourceCode(File file) throws FileNotReadException,
-			EmptyCodeException, ClassNotDefinedException {
-		if (!(file.isFile() && file.canRead()))
-			throw new FileNotReadException("could not read file " + file);
-
-		try {
-			this.identifyElements(new Scanner(file).useDelimiter("\\A").next());
-		} catch (NoSuchElementException e) {
-			throw new EmptyCodeException("empty source code");
-		} catch (FileNotFoundException e) {
-			// this block exists for the code stay in conformity with jvm rules
-		}
+	public SourceCode(File file) throws ParseException, FileNotFoundException {
+		this.identifyElements(new FileInputStream(file));
 	}
 
-	private void identifyElements(String code) throws ClassNotDefinedException {
-		// regex to match package name
-		// NOTE: this pattern is assuming the code is well formatted
-		Pattern pattern = Pattern.compile(
-				// junk before the package name
-				"(?:\\s|(?m)^\\s*//.*$|/\\*.*\\*/)*(?:\\bpackage\\b\\s*)" +
-				// grouping the package name
-				"([^;]*)" +
-				// rest of the code
-				"(?:;.*)", Pattern.DOTALL);
+	private void identifyElements(InputStream stream) throws ParseException {
+		CompilationUnit cUnit = JavaParser.parse(stream);
+		PackageDeclaration pkgDecl = cUnit.getPackage();
 
-		Matcher matcher = pattern.matcher(code);
-		if (matcher.matches())
-			this.packageName = matcher.group(1).replaceAll("\\s", "");
-		else
-			this.packageName = "";
-
-		// regex to match class name
-		// NOTE: this pattern is assuming the code is well formatted
-		pattern = Pattern.compile(
-				"(?:.*class\\s*)(\\b\\w*\\b)(?:.*)", Pattern.DOTALL);
-
-		matcher = pattern.matcher(code);
-		if (matcher.matches())
-			this.className = matcher.group(1);
-		else
-			throw new ClassNotDefinedException("code has not a defined class");
-
-		if (this.packageName != "")
-			this.qualifiedName = this.packageName + "." + this.className;
-		else
-			this.qualifiedName = this.className;
-
-		this.code = code;
+		this.packageName = pkgDecl != null ? pkgDecl.getName().toString() : null;
+		this.className = cUnit.getTypes().get(0).getName();
+		this.qualifiedName = this.packageName != null ?
+				this.packageName + "." + this.className : this.className;
+		this.code = cUnit;
 	}
 
 	public String getPackageName() {
@@ -103,7 +69,7 @@ public class SourceCode implements Comparable<SourceCode> {
 	public JavaFileObject getJavaFileObject() {
 		if (this.javaFileObject == null) {
 			this.javaFileObject = new StringJavaFileObject(this.qualifiedName,
-														   this.code);
+					this.code.toString());
 		}
 
 		return this.javaFileObject;
@@ -111,8 +77,20 @@ public class SourceCode implements Comparable<SourceCode> {
 
 	@Override
 	public String toString() {
-		return this.code;
+		return this.code.toString();
 	}
+
+	@Override
+	public boolean equals(Object obj) {
+		SourceCode o = (SourceCode) obj;
+		return this.qualifiedName == o.qualifiedName;
+	}
+
+	@Override
+	public int compareTo(SourceCode o) {
+		return this.qualifiedName.compareTo(o.qualifiedName);
+	}
+
 
 	private class StringJavaFileObject extends SimpleJavaFileObject {
 		private CharSequence charContent;
@@ -129,17 +107,4 @@ public class SourceCode implements Comparable<SourceCode> {
 			return charContent;
 		}
 	}
-
-
-	@Override
-	public boolean equals(Object obj) {
-		SourceCode o = (SourceCode) obj;
-		return this.qualifiedName == o.qualifiedName;
-	}
-
-	@Override
-	public int compareTo(SourceCode o) {
-		return this.qualifiedName.compareTo(o.qualifiedName);
-	}
-
 }

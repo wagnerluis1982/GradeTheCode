@@ -2,13 +2,12 @@ package org.gtc.compiler;
 
 import static org.junit.Assert.*;
 
-import java.io.ByteArrayOutputStream;
+import japa.parser.ParseException;
+
 import java.io.File;
 import java.io.IOException;
-import java.io.PrintStream;
 import java.util.Map;
 
-import org.gtc.sourcecode.ClassNotDefinedException;
 import org.gtc.sourcecode.SourceCode;
 import org.gtc.util.Util;
 import org.junit.Test;
@@ -19,8 +18,8 @@ public class CompilerTest {
 			"public class Test { public int getNumber() { return 1000; } }";
 
 	@Test
-	public void testCompile() throws IOException, CompilerException,
-			ClassNotDefinedException, NoSuchMethodException, SecurityException,
+	public void testCompile() throws IOException, ParseException,
+			CompilerException, NoSuchMethodException, SecurityException,
 			IllegalAccessException, IllegalArgumentException,
 			CallMethodException {
 		Compiler compiler = new Compiler(new SourceCode(simpleCode));
@@ -37,7 +36,7 @@ public class CompilerTest {
 	}
 
 	@Test
-	public void testCompileInformingTarget() throws IOException, CompilerException, ClassNotDefinedException {
+	public void testCompileInformingTarget() throws ParseException, CompilerException {
 		File targetDir = Util.createTempDir();
 		targetDir.deleteOnExit();
 
@@ -45,18 +44,6 @@ public class CompilerTest {
 		compiler.compile();
 
 		assertTrue(targetDir.exists());
-	}
-
-	@Test
-	public void testCompileOut() throws ClassNotDefinedException, IOException, DuplicatedCodeException {
-		Compiler compiler = new Compiler(new SourceCode(simpleCode + "invalidToken"));
-
-		ByteArrayOutputStream out = new ByteArrayOutputStream();
-		try {
-			compiler.compile(new PrintStream(out));
-		} catch (CompilerException e) {}
-
-		assertTrue(out.size() + " isn't greater than 0", out.size() > 0);
 	}
 
 }
