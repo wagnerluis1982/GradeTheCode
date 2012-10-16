@@ -3,12 +3,14 @@ package org.gtc.compiler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 public class ClassWrapper {
 
 	private final Class<?> javaClass;
+	private Method[] declaredMethods;
+	private Method[] publicMethods;
+	private Method[] testMethods;
 
 	public ClassWrapper(Class<?> javaClass) {
 		this.javaClass = javaClass;
@@ -23,17 +25,37 @@ public class ClassWrapper {
 	}
 
 	public Method[] getDeclaredMethods() {
-		return this.javaClass.getDeclaredMethods();
+		this.declaredMethods = this.declaredMethods != null ? this.declaredMethods
+				: this.javaClass.getDeclaredMethods();
+
+		return declaredMethods;
 	}
 
-	public List<Method> getDeclaredPublicMethods() {
-		List<Method> publicMethods = new ArrayList<Method>();
+	public Method[] getDeclaredPublicMethods() {
+		if (this.publicMethods != null)
+			return this.publicMethods;
+
+		List<Method> methods = new ArrayList<Method>();
 
 		for (Method method : this.getDeclaredMethods())
 			if (Modifier.isPublic(method.getModifiers()))
-				publicMethods.add(method);
+				methods.add(method);
 
-		return Collections.unmodifiableList(publicMethods);
+		return (this.publicMethods = methods.toArray(new Method[0]));
+	}
+
+	public Method[] getTestMethods() {
+		if (this.testMethods != null)
+			return this.testMethods;
+
+		List<Method> methods = new ArrayList<Method>();
+
+		for (Method method : this.getDeclaredPublicMethods())
+			if (method.getName().startsWith("test")
+					&& method.getParameterTypes().length == 0)
+				methods.add(method);
+
+		return (this.testMethods = methods.toArray(new Method[0]));
 	}
 
 	public Instance newInstance() {
@@ -45,6 +67,5 @@ public class ClassWrapper {
 
 		return null;
 	}
-
 
 }

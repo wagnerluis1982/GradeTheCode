@@ -1,5 +1,7 @@
 package com.example;
 
+import static java.lang.Thread.sleep;
+
 public class Calculator {
 
     private double currentNumber;
@@ -8,23 +10,15 @@ public class Calculator {
     	this.currentNumber = currentNumber;
     }
 
-	public double getCurrentNumber() {
+	public double getCurrentNumber() throws InterruptedException {
 		sleep(2);
 		return this.currentNumber;
 	}
 
-	public double plus(double newNumber) {
+	public double plus(double newNumber) throws InterruptedException {
 		sleep(1);
 		this.currentNumber += newNumber;
 		return this.getCurrentNumber();
 	}
-
-    private void sleep(int seconds) {
-    	try {
-    		Thread.sleep(seconds);
-    	} catch (InterruptedException e) {
-    		throw new RuntimeException();
-    	}
-    }
 
 }

@@ -1,32 +1,32 @@
 package org.gtc.test;
 
-import static org.junit.Assert.fail;
+import static org.junit.Assert.*;
+import static org.hamcrest.CoreMatchers.*;
+import static org.hamcrest.number.OrderingComparison.*;
+
+import japa.parser.ParseException;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Map;
 
-import org.gtc.compiler.ClassWrapper;
 import org.gtc.compiler.Compiler;
 import org.gtc.compiler.CompilerException;
-import org.gtc.sourcecode.ClassNotDefinedException;
-import org.gtc.sourcecode.EmptyCodeException;
 import org.gtc.sourcecode.SourceCode;
+import org.gtc.util.Util;
 import org.junit.Test;
 
 public class TestRunnerTest {
 
 	@Test
-	public void test() throws EmptyCodeException, ClassNotDefinedException, IOException, CompilerException {
-		fail("Not yet implemented");
+	public void testTestResult() throws IOException, ParseException, CompilerException {
+		Compiler compiler = new Compiler(new SourceCode(resource("examples/TestCode.src")));
+		compiler.compile();
 
-		Compiler compiler = new Compiler(
-				new SourceCode(resource("examples/Ideal.src")),
-				new SourceCode(resource("examples/TestCode.src"))
-			);
-		Map<String, ClassWrapper> classes = compiler.compile();
+		TestRunner runner = new TestRunner(new SourceCode(resource("examples/TestCode.src")));
+		TestResult result = runner.runTest(new SourceCode(resource("examples/Ideal.src")));
 
-		TestRunner runner = new TestRunner();
+		assertThat(result.getName(), equalTo("com.example.CalculatorTest"));
+		assertThat(result.getElapsedTime(), greaterThanOrEqualTo(Util.nanoSeconds(2)));
 	}
 
 	private InputStream resource(String name) {

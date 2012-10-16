@@ -1,6 +1,5 @@
 package org.gtc.sourcecode;
 
-
 import japa.parser.JavaParser;
 import japa.parser.ParseException;
 import japa.parser.ast.CompilationUnit;
@@ -23,7 +22,7 @@ public class SourceCode implements Comparable<SourceCode> {
 	private String packageName;
 	private String className;
 	private JavaFileObject javaFileObject;
-	private String qualifiedName;
+	private String name;
 
 	public SourceCode(String code) throws ParseException {
 		if (code == null)
@@ -49,7 +48,7 @@ public class SourceCode implements Comparable<SourceCode> {
 
 		this.packageName = pkgDecl != null ? pkgDecl.getName().toString() : null;
 		this.className = cUnit.getTypes().get(0).getName();
-		this.qualifiedName = this.packageName != null ?
+		this.name = this.packageName != null ?
 				this.packageName + "." + this.className : this.className;
 		this.code = cUnit;
 	}
@@ -62,33 +61,43 @@ public class SourceCode implements Comparable<SourceCode> {
 		return this.className;
 	}
 
-	public String getQualifiedName() {
-		return this.qualifiedName;
+	public String getName() {
+		return this.name;
+	}
+
+	public String getCode() {
+		return this.code.toString();
 	}
 
 	public JavaFileObject getJavaFileObject() {
-		if (this.javaFileObject == null) {
-			this.javaFileObject = new StringJavaFileObject(this.qualifiedName,
+		if (this.javaFileObject == null)
+			this.javaFileObject = new StringJavaFileObject(this.name,
 					this.code.toString());
-		}
 
 		return this.javaFileObject;
 	}
 
 	@Override
 	public String toString() {
-		return this.code.toString();
+		return this.name;
 	}
 
 	@Override
 	public boolean equals(Object obj) {
-		SourceCode o = (SourceCode) obj;
-		return this.qualifiedName == o.qualifiedName;
+		if (obj == null)
+			return false;
+		if (this == obj)
+			return true;
+
+		return this.name.equals(((SourceCode) obj).name);
 	}
 
 	@Override
 	public int compareTo(SourceCode o) {
-		return this.qualifiedName.compareTo(o.qualifiedName);
+		if (this.equals(o))
+			return 0;
+
+		return this.name.compareTo(o.name);
 	}
 
 
@@ -107,4 +116,5 @@ public class SourceCode implements Comparable<SourceCode> {
 			return charContent;
 		}
 	}
+
 }

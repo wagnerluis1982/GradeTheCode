@@ -27,4 +27,9 @@ public class UtilTest {
 		assertEquals(expected, actual);
 	}
 
+	@Test
+	public void testFilterNonNull() {
+		assertArrayEquals(new String[] { "a", "b", "c" },
+				Util.filterNonNull("a", null, "b", "c", null));
+	}
 }

@@ -2,28 +2,18 @@ package com.example;
 
 public class CalculatorTest {
 
-    private double currentNumber;
+    private Calculator calc;
 
-    public CalculatorTest(double currentNumber) {
-    	this.currentNumber = currentNumber;
+    public CalculatorTest() {
+    	calc = new Calculator(99.5);
     }
 
-	public double getCurrentNumber() {
-		sleep(2);
-		return this.currentNumber;
+	public void testCurrentNumber() throws InterruptedException {
+		assert calc.getCurrentNumber() == 99.5;
 	}
 
-	public double plus(double newNumber) {
-		this.currentNumber += newNumber;
-		return this.getCurrentNumber();
+	public void testPlus() throws InterruptedException {
+		assert calc.plus(0.1) == 99.6;
 	}
-
-    private void sleep(int seconds) {
-    	try {
-    		Thread.sleep(seconds);
-    	} catch (InterruptedException e) {
-    		throw new RuntimeException();
-    	}
-    }
 
 }

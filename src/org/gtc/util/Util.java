@@ -3,6 +3,7 @@ package org.gtc.util;
 import java.io.File;
 import java.io.FilenameFilter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class Util {
@@ -40,6 +41,19 @@ public class Util {
 		return files;
 	}
 
+	public static <T> T[] filterNonNull(final T... items) {
+		List<T> list = new ArrayList<T>();
+		for (T e : items)
+			if (e != null)
+				list.add(e);
+
+		return list.toArray(Arrays.copyOf(items, 0));
+	}
+
+	public static long nanoSeconds(long millis) {
+		return millis * 1000000;
+	}
+
 	/**
 	 * Atomically creates a new directory somewhere beneath the system's
 	 * temporary directory (as defined by the {@code java.io.tmpdir} system
@@ -59,8 +73,9 @@ public class Util {
 	 * per second.
 	 *
 	 * <p>
-	 * NOTE: This method was copied from class "com.google.common.io.Files" of
-	 * the guava-libraries which can be found at {@link https://code.google.com/p/guava-libraries/}
+	 * NOTE: This method originally belongs to "com.google.common.io.Files", a
+	 * class of the guava-libraries, which can be found at
+	 * {@link https://code.google.com/p/guava-libraries/}.
 	 *
 	 * @return the newly-created directory
 	 * @throws IllegalStateException

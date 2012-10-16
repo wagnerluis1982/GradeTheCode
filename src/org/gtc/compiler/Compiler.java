@@ -30,15 +30,17 @@ import org.gtc.util.Util;
 public class Compiler {
 	private File targetDir;
 	private Set<SourceCode> codes;
+	private boolean assertionsEnabled = false;
+	private Map<String, ClassWrapper> classesMap;
 
-	public Compiler(File targetDir, SourceCode ...codes) throws InvalidTargetException, DuplicatedCodeException {
+	public Compiler(File targetDir, SourceCode ...codes) throws InvalidTargetException {
 		if (!(targetDir.isDirectory() && targetDir.canWrite()))
 			throw new InvalidTargetException("invalid target directory");
 
-		initialize(targetDir, codes);
+		prepare(targetDir, codes);
 	}
 
-	public Compiler(SourceCode ...codes) throws IOException, DuplicatedCodeException {
+	public Compiler(SourceCode ...codes) throws IOException {
 		File tempDir = null;
 		try {
 			tempDir = Util.createTempDir();
@@ -48,10 +50,10 @@ public class Compiler {
 			tempDir.deleteOnExit();
 		}
 
-		initialize(tempDir, codes);
+		prepare(tempDir, codes);
 	}
 
-	private void initialize(File dir, SourceCode ...codes) throws DuplicatedCodeException {
+	private void prepare(File dir, SourceCode ...codes) {
 		this.targetDir = dir;
 		this.codes = new HashSet<SourceCode>(Arrays.asList(codes));
 
@@ -61,7 +63,11 @@ public class Compiler {
 			throw new IllegalArgumentException("null found in the set");
 	}
 
-	public Map<String, ClassWrapper> compile(PrintStream out) throws CompilerException {
+	public void enableAssertions() {
+		this.assertionsEnabled  = true;
+	}
+
+	public void compile(PrintStream out) throws CompilerException {
 		List<JavaFileObject> fileObjects = new ArrayList<JavaFileObject>();
 		for (SourceCode sourceCode : this.codes)
 			fileObjects.add(sourceCode.getJavaFileObject());
@@ -85,39 +91,48 @@ public class Compiler {
 		// Use an OutputStream passed by argument or stdout
 		out = out != null ? out : System.out;
 		for (Diagnostic<?> d : diagnostics.getDiagnostics())
-			out.printf("Error on line %d in %s", d.getLineNumber(), d);
+			out.printf("Error on line %d in %s\n", d.getLineNumber(), d);
 
 		try {
-			return loadClasses();
+			loadClasses();
 		} catch (ClassNotFoundException e) {
-			throw new CompilerException(e.getMessage());
+			throw new CompilerException(e.getMessage() + " not found");
 		} finally {
 			this.deleteDir(this.targetDir, false);
 		}
 	}
 
-	public Map<String, ClassWrapper> compile() throws CompilerException {
-		return this.compile(null);
+	public void compile() throws CompilerException {
+		this.compile(null);
 	}
 
-	private Map<String, ClassWrapper> loadClasses() throws ClassNotFoundException {
+	public ClassWrapper[] getAssertionClasses() {
+		return null;
+	}
+
+	public Map<String, ClassWrapper> getClasses() {
+		return this.classesMap;
+	}
+
+	private void loadClasses() throws ClassNotFoundException {
 		Map<String, ClassWrapper> classesMap = new HashMap<String, ClassWrapper>();
 
 		ClassLoader classLoader = null;
 		try {
 			classLoader = new URLClassLoader(new URL[] {this.targetDir.toURI().toURL()});
 		} catch (MalformedURLException e) {
-			e.printStackTrace();
-			return null;
+			this.classesMap = null;
+			return;
 		}
 
 		for (SourceCode code : this.codes) {
-			String name = code.getQualifiedName();
+			String name = code.getName();
+			classLoader.setDefaultAssertionStatus(assertionsEnabled);
 			Class<?> klass = classLoader.loadClass(name);
 			classesMap.put(name, new ClassWrapper(klass));
 		}
 
-		return Collections.unmodifiableMap(classesMap);
+		this.classesMap = Collections.unmodifiableMap(classesMap);
 	}
 
 	private void deleteDir(File dir, boolean including) {
@@ -139,5 +154,8 @@ public class Compiler {
 	public File getTargetDir() {
 		return targetDir;
 	}
+
+
+
 
 }

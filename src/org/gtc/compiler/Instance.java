@@ -27,6 +27,9 @@ public class Instance {
 			Method method = this.javaClass.getDeclaredMethod(name, parameterTypes);
 			return method.invoke(this.actualInstance, args);
 		} catch (InvocationTargetException e) {
+			if (e.getCause() instanceof AssertionError)
+				throw (AssertionError) e.getCause();
+
 			throw new CallMethodException("unexpected error");
 		}
 	}
