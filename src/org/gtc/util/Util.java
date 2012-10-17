@@ -47,6 +47,9 @@ public class Util {
 			if (e != null)
 				list.add(e);
 
+		if (list.size() == items.length)
+			return items;
+
 		return list.toArray(Arrays.copyOf(items, 0));
 	}
 

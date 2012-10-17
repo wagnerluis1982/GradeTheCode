@@ -6,20 +6,20 @@ import java.util.Map;
 public class TestResult {
 
 	private String name;
-	private Map<String, Boolean> results;
+	private Map<String, TestMethodResult> methodResults;
 	private long elapsedTime;
 
 	public void setName(String name) {
 		this.name = name;
-		this.results = new Hashtable<String, Boolean>();
+		this.methodResults = new Hashtable<String, TestMethodResult>();
 	}
 
 	public void setElapsedTime(long nanos) {
 		this.elapsedTime = nanos;
 	}
 
-	public void addResult(String methodName, boolean passed) {
-		this.results.put(methodName, passed);
+	public void addMethodResult(String methodName, TestMethodResult methodResult) {
+		this.methodResults.put(methodName, methodResult);
 	}
 
 	public String getName() {
@@ -30,8 +30,8 @@ public class TestResult {
 		return elapsedTime;
 	}
 
-	public Map<String, Boolean> getResults() {
-		return results;
+	public Map<String, TestMethodResult> getMethodResults() {
+		return methodResults;
 	}
 
 }

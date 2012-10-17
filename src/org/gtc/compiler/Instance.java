@@ -22,9 +22,15 @@ public class Instance {
 		for (int i = 0; i < args.length; i++)
 			parameterTypes[i] = args[i].getClass();
 
+		Method method = this.javaClass.getDeclaredMethod(name, parameterTypes);
+		return this.call(method, args);
+	}
+
+	public Object call(Method method, Object... args)
+			throws IllegalAccessException, IllegalArgumentException,
+			CallMethodException {
 		// try to invoke method
 		try {
-			Method method = this.javaClass.getDeclaredMethod(name, parameterTypes);
 			return method.invoke(this.actualInstance, args);
 		} catch (InvocationTargetException e) {
 			if (e.getCause() instanceof AssertionError)
@@ -32,6 +38,14 @@ public class Instance {
 
 			throw new CallMethodException("unexpected error");
 		}
+	}
+
+	public Object getActualInstance() {
+		return actualInstance;
+	}
+
+	public Class<?> getJavaClass() {
+		return javaClass;
 	}
 
 }

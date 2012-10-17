@@ -30,41 +30,49 @@ import org.gtc.util.Util;
 public class Compiler {
 	private File targetDir;
 	private Set<SourceCode> codes;
-	private boolean assertionsEnabled = false;
+	private List<SourceCode> assertionCodes;
 	private Map<String, ClassWrapper> classesMap;
 
-	public Compiler(File targetDir, SourceCode ...codes) throws InvalidTargetException {
+	public Compiler(File targetDir) throws InvalidTargetException {
 		if (!(targetDir.isDirectory() && targetDir.canWrite()))
 			throw new InvalidTargetException("invalid target directory");
 
-		prepare(targetDir, codes);
+		initialize(targetDir);
 	}
 
-	public Compiler(SourceCode ...codes) throws IOException {
+	public Compiler() throws IOException {
 		File tempDir = null;
 		try {
 			tempDir = Util.createTempDir();
 		} catch (IllegalStateException e) {
-			throw new IOException(e.getMessage());
+			throw new IOException(e);
 		} finally {
 			tempDir.deleteOnExit();
 		}
 
-		prepare(tempDir, codes);
+		initialize(tempDir);
 	}
 
-	private void prepare(File dir, SourceCode ...codes) {
+	private void initialize(File dir) {
 		this.targetDir = dir;
-		this.codes = new HashSet<SourceCode>(Arrays.asList(codes));
-
-		if (this.codes.size() != codes.length)
-			throw new DuplicatedCodeException("duplicated code detected");
-		else if (this.codes.contains(null))
-			throw new IllegalArgumentException("null found in the set");
+		this.codes = new HashSet<SourceCode>();
+		this.assertionCodes = new ArrayList<SourceCode>();
 	}
 
-	public void enableAssertions() {
-		this.assertionsEnabled  = true;
+	public void addCodes(SourceCode... codes) {
+		codes = Util.filterNonNull(codes);
+
+		for (SourceCode code : codes) {
+			if (this.codes.contains(code))
+				throw new DuplicatedCodeException("the class " + code.getName() +
+						" is already in the set");
+			this.codes.add(code);
+		}
+	}
+
+	public void addAssertionCodes(SourceCode... codes) {
+		this.addCodes(codes);
+		this.assertionCodes.addAll(Arrays.asList(codes));
 	}
 
 	public void compile(PrintStream out) throws CompilerException {
@@ -93,13 +101,7 @@ public class Compiler {
 		for (Diagnostic<?> d : diagnostics.getDiagnostics())
 			out.printf("Error on line %d in %s\n", d.getLineNumber(), d);
 
-		try {
-			loadClasses();
-		} catch (ClassNotFoundException e) {
-			throw new CompilerException(e.getMessage() + " not found");
-		} finally {
-			this.deleteDir(this.targetDir, false);
-		}
+		loadClasses();
 	}
 
 	public void compile() throws CompilerException {
@@ -107,29 +109,43 @@ public class Compiler {
 	}
 
 	public ClassWrapper[] getAssertionClasses() {
-		return null;
+		List<ClassWrapper> classes = new ArrayList<ClassWrapper>();
+		for (SourceCode code : this.assertionCodes)
+			classes.add(this.classesMap.get(code.getName()));
+
+		return classes.toArray(new ClassWrapper[0]);
 	}
 
 	public Map<String, ClassWrapper> getClasses() {
 		return this.classesMap;
 	}
 
-	private void loadClasses() throws ClassNotFoundException {
+	private void loadClasses() throws CompilerException {
 		Map<String, ClassWrapper> classesMap = new HashMap<String, ClassWrapper>();
+		this.classesMap = null;
 
 		ClassLoader classLoader = null;
 		try {
 			classLoader = new URLClassLoader(new URL[] {this.targetDir.toURI().toURL()});
 		} catch (MalformedURLException e) {
-			this.classesMap = null;
-			return;
+			// never caught
 		}
 
-		for (SourceCode code : this.codes) {
-			String name = code.getName();
-			classLoader.setDefaultAssertionStatus(assertionsEnabled);
-			Class<?> klass = classLoader.loadClass(name);
-			classesMap.put(name, new ClassWrapper(klass));
+		// Activate assertions where marked
+		for (SourceCode code : this.assertionCodes)
+			classLoader.setClassAssertionStatus(code.getName(), true);
+
+		// Load classes
+		try {
+			for (SourceCode code : this.codes) {
+				String name = code.getName();
+				Class<?> klass = classLoader.loadClass(name);
+				classesMap.put(name, new ClassWrapper(klass));
+			}
+		} catch (ClassNotFoundException e) {
+			throw new CompilerException("error compiling class " + e);
+		} finally {
+			this.deleteDir(this.targetDir, false);
 		}
 
 		this.classesMap = Collections.unmodifiableMap(classesMap);
@@ -154,6 +170,7 @@ public class Compiler {
 	public File getTargetDir() {
 		return targetDir;
 	}
+
 
 
 

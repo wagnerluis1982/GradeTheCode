@@ -22,7 +22,8 @@ public class CompilerTest {
 			CompilerException, NoSuchMethodException, SecurityException,
 			IllegalAccessException, IllegalArgumentException,
 			CallMethodException, ClassNotFoundException {
-		Compiler compiler = new Compiler(new SourceCode(simpleCode));
+		Compiler compiler = new Compiler();
+		compiler.addCodes(new SourceCode(simpleCode));
 		compiler.compile();
 
 		Map<String, ClassWrapper> classes = compiler.getClasses();
@@ -41,7 +42,8 @@ public class CompilerTest {
 		File targetDir = Util.createTempDir();
 		targetDir.deleteOnExit();
 
-		Compiler compiler = new Compiler(targetDir, new SourceCode(simpleCode));
+		Compiler compiler = new Compiler(targetDir);
+		compiler.addCodes(new SourceCode(simpleCode));
 		compiler.compile();
 
 		assertTrue(targetDir.exists());
@@ -59,8 +61,8 @@ public class CompilerTest {
 					"}" +
 				"}");
 
-		Compiler compiler = new Compiler(code);
-		compiler.enableAssertions();
+		Compiler compiler = new Compiler();
+		compiler.addAssertionCodes(code);
 		compiler.compile();
 
 		ClassWrapper cw = compiler.getClasses().get("test.Test");

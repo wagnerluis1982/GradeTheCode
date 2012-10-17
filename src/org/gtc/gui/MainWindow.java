@@ -64,6 +64,11 @@ public class MainWindow {
 		menuBar.add(mnProject);
 
 		JMenuItem mntmNew = new JMenuItem("New");
+		mntmNew.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				newProject(e);
+			}
+		});
 		mntmNew.setMnemonic(KeyEvent.VK_R);
 		mnProject.add(mntmNew);
 
@@ -111,6 +116,10 @@ public class MainWindow {
 
 		step1 = new Step1();
 		tabbedPane.addTab("Step 1", null, step1, null);
+	}
+
+	private void newProject(ActionEvent evt) {
+		step1.resetUI();
 	}
 
 	private void showAboutDialog(ActionEvent e) {
