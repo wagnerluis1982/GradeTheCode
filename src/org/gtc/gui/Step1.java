@@ -135,16 +135,28 @@ public class Step1 extends JPanel {
 		}
 
 		// Use information from compiled classes to populate the tree
-		Map<String, ClassWrapper> classes = compiler.getClasses();
-		for (ClassWrapper cw : classes.values()) {
-			// New node with qualified class name TODO: Try to put one node only for packages, similarly to eclipse
-			DefaultMutableTreeNode classNode = new DefaultMutableTreeNode(cw.getName());
-			// Insert into class node it methods
-			for (Method method : cw.getDeclaredPublicMethods())
-				classNode.add(new DefaultMutableTreeNode(methodSignature(method), false));
+		try {
+			Map<String, ClassWrapper> classes = compiler.getClasses();
+			for (ClassWrapper cw : classes.values()) {
+				// New node with qualified class name TODO: Try to put one node only for packages, similarly to eclipse
+				DefaultMutableTreeNode classNode = new DefaultMutableTreeNode(cw.getName());
+				// Insert into class node it methods
+				for (Method method : cw.getDeclaredPublicMethods())
+					classNode.add(new DefaultMutableTreeNode(methodSignature(method), false));
 
-			rootNode.add(classNode);
-			treeModel.reload(rootNode);
+				rootNode.add(classNode);
+				treeModel.reload(rootNode);
+			}
+		} catch(NoClassDefFoundError e) {
+			// This is an error caused in some java souces when have inner classes
+			// TODO: Investigate how to avoid this error
+
+			resetUI(); // restore UI state for the app behaves correct
+			errorMessage("Unexpected Error", e +
+					"\n\nNOTE: This error is normally caused by some " +
+						"java souces which have inner classes." +
+					"\nA fix will be available when possible.");
+			return;
 		}
 
 		// Some UI actions
