@@ -41,6 +41,10 @@ public class Util {
 		return files;
 	}
 
+	public static <T> T defaultIfNull(T obj, T defaultValue) {
+		return obj != null ? obj : defaultValue;
+	}
+
 	public static <T> T[] filterNonNull(final T... items) {
 		List<T> list = new ArrayList<T>();
 		for (T e : items)

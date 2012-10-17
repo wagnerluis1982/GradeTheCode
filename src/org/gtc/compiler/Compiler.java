@@ -101,6 +101,10 @@ public class Compiler {
 		for (Diagnostic<?> d : diagnostics.getDiagnostics())
 			out.printf("Error on line %d in %s\n", d.getLineNumber(), d);
 
+		// Clean the directory on JVM shutdown
+		this.deltreeOnExit(this.targetDir);
+
+		// Load classes in memory
 		loadClasses();
 	}
 
@@ -144,27 +148,17 @@ public class Compiler {
 			}
 		} catch (ClassNotFoundException e) {
 			throw new CompilerException("error compiling class " + e);
-		} finally {
-			this.deleteDir(this.targetDir, false);
 		}
 
 		this.classesMap = Collections.unmodifiableMap(classesMap);
 	}
 
-	private void deleteDir(File dir, boolean including) {
-		if (dir.exists()) {
-			File[] files = dir.listFiles();
-
-			for (File f : files) {
-				if (f.isDirectory())
-					this.deleteDir(f, true);
-				else
-					f.delete();
-			}
+	private void deltreeOnExit(File dir) {
+		for (File f : dir.listFiles()) {
+			f.deleteOnExit();
+			if (f.isDirectory())
+				this.deltreeOnExit(f);
 		}
-
-		if (including)
-			dir.delete();
 	}
 
 	public File getTargetDir() {

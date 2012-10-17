@@ -1,6 +1,7 @@
 package org.gtc.gui;
 
 import static org.gtc.util.Util.listFilesRecursive;
+import static org.gtc.util.Util.defaultIfNull;
 
 import japa.parser.ParseException;
 
@@ -17,6 +18,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTree;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
+import javax.swing.tree.MutableTreeNode;
 import javax.swing.tree.TreeSelectionModel;
 
 import org.gtc.compiler.ClassWrapper;
@@ -34,7 +36,9 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.lang.reflect.Method;
+import java.util.Hashtable;
 import java.util.Map;
+import java.awt.event.KeyEvent;
 
 public class Step1 extends JPanel {
 
@@ -77,6 +81,7 @@ public class Step1 extends JPanel {
 		add(panel, BorderLayout.SOUTH);
 
 		btnLoad = new JButton("Load");
+		btnLoad.setMnemonic(KeyEvent.VK_L);
 		btnLoad.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				loadCodeInTree(e);
@@ -134,30 +139,30 @@ public class Step1 extends JPanel {
 			return;
 		}
 
-		// Use information from compiled classes to populate the tree
-		try {
-			Map<String, ClassWrapper> classes = compiler.getClasses();
-			for (ClassWrapper cw : classes.values()) {
-				// New node with qualified class name TODO: Try to put one node only for packages, similarly to eclipse
-				DefaultMutableTreeNode classNode = new DefaultMutableTreeNode(cw.getName());
-				// Insert into class node it methods
-				for (Method method : cw.getDeclaredPublicMethods())
-					classNode.add(new DefaultMutableTreeNode(methodSignature(method), false));
-
-				rootNode.add(classNode);
-				treeModel.reload(rootNode);
+		// Populate the tree TODO: make to be possible remove in the UI
+		Map<String, DefaultMutableTreeNode> packageNodes = new Hashtable<String, DefaultMutableTreeNode>();
+		for (ClassWrapper cw : compiler.getClasses().values()) {
+			// Class nodes in packages, similarly to what we se on Eclipse
+			String pkgName = defaultIfNull(cw.getPackageName(), "(default package)");
+			DefaultMutableTreeNode pkgNode = packageNodes.get(pkgName);
+			if (pkgNode == null) {
+				pkgNode = new DefaultMutableTreeNode(pkgName);
+				packageNodes.put(pkgName, pkgNode);
 			}
-		} catch(NoClassDefFoundError e) {
-			// This is an error caused in some java souces when have inner classes
-			// TODO: Investigate how to avoid this error
 
-			resetUI(); // restore UI state for the app behaves correct
-			errorMessage("Unexpected Error", e +
-					"\n\nNOTE: This error is normally caused by some " +
-						"java souces which have inner classes." +
-					"\nA fix will be available when possible.");
-			return;
+			// New node with the class name
+			DefaultMutableTreeNode classNode = new DefaultMutableTreeNode(cw.getSimpleName());
+			// Insert into class node it methods
+			for (Method method : cw.getDeclaredPublicMethods())
+				classNode.add(new DefaultMutableTreeNode(methodSignature(method), false));
+
+			pkgNode.add(classNode);
 		}
+
+		for (MutableTreeNode pkgNode : packageNodes.values())
+			rootNode.add(pkgNode);
+
+		treeModel.reload(rootNode);
 
 		// Some UI actions
 		tree.expandRow(0);

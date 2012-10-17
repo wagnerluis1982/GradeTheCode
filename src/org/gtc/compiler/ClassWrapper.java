@@ -24,6 +24,18 @@ public class ClassWrapper {
 		return this.javaClass.getName();
 	}
 
+	public String getSimpleName() {
+		return this.javaClass.getSimpleName();
+	}
+
+	public String getPackageName() {
+		Package pkg = this.javaClass.getPackage();
+		if (pkg != null)
+			return pkg.getName();
+
+		return null;
+	}
+
 	public Method[] getDeclaredMethods() {
 		this.declaredMethods = this.declaredMethods != null ? this.declaredMethods
 				: this.javaClass.getDeclaredMethods();
