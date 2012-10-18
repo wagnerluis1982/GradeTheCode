@@ -36,7 +36,7 @@ public class Instance {
 			if (e.getCause() instanceof AssertionError)
 				throw (AssertionError) e.getCause();
 
-			throw new CallMethodException("unexpected error");
+			throw new CallMethodException("unexpected error", e);
 		}
 	}
 

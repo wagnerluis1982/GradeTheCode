@@ -192,8 +192,8 @@ public class Step1 extends JPanel {
 	}
 
 	private String formattedTypeName(Class<?> type) {
-		String name = type.getName();
-		if (name.startsWith("java.lang."))
+		String name = type.getCanonicalName();
+		if (name.matches("java\\.lang\\.\\w*(?:\\[\\])?"))
 			return name.replaceFirst("java.lang.", "");
 
 		return name;

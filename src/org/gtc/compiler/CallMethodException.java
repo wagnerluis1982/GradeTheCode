@@ -6,4 +6,8 @@ public class CallMethodException extends Exception {
 		super(message);
 	}
 
+	public CallMethodException(String message, Throwable e) {
+		super(message, e);
+	}
+
 }
