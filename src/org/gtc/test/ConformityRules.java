@@ -5,11 +5,11 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
-public class ConformanceRules {
+public class ConformityRules {
 
 	private Set<ClassRules> classRules;
 
-	public ConformanceRules(ClassRules... clsRules) {
+	public ConformityRules(ClassRules... clsRules) {
 		this.classRules = new HashSet<ClassRules>(Arrays.asList(clsRules));
 	}
 

@@ -7,16 +7,28 @@ import java.util.Map;
 import org.gtc.compiler.ClassWrapper;
 import org.gtc.test.MethodRule;
 
-public class ConformanceChecker {
+public class Conformity {
 
-	private ConformanceRules rules;
+	public enum Reason {
+		VISIBILITY,
+		RETURN_TYPE,
+	}
 
-	public ConformanceChecker(ConformanceRules rules) {
+	public enum Visibility {
+		PRIVATE,
+		PROTECTED,
+		PUBLIC,
+		OTHER,
+	}
+
+	private ConformityRules rules;
+
+	public Conformity(ConformityRules rules) {
 		this.rules = rules;
 	}
 
-	public ConformanceResult check(Map<String, ClassWrapper> classes) {
-		ConformanceResult result = new ConformanceResult();
+	public ConformityResult check(Map<String, ClassWrapper> classes) {
+		ConformityResult result = new ConformityResult();
 
 		for (ClassRules classRules : this.rules.getClassesRules()) {
 			String className = classRules.getName();
@@ -28,22 +40,26 @@ public class ConformanceChecker {
 			}
 
 			for (MethodRule methodRule : classRules.getMethodRules()) {
-				Method method = wrapper.getDeclaredMethod(methodRule.getName(),
+				Method checkingMethod = wrapper.getDeclaredMethod(methodRule.getName(),
 						methodRule.getParameterTypes());
 
-				if (method == null) {
+				if (checkingMethod == null) {
 					result.addMissingMethod(methodRule);
 					continue;
 				}
 
-				Visibility visibility = methodVisibility(method);
-				result.setMethodVisibilty(methodRule, visibility);
-
-				if (!visibility.equals(Visibility.PUBLIC))
+				Visibility visibility = methodVisibility(checkingMethod);
+				if (!methodRule.getVisibility().equals(visibility)) {
+					result.addNonConformingMethod(methodRule, checkingMethod,
+							Reason.VISIBILITY);
 					continue;
+				}
 
-				MethodRule checkingMethodRule = new MethodRule(method);
-				result.setMethodReturnTypeConformity(methodRule, checkingMethodRule);
+				Class<?> returnType = checkingMethod.getReturnType();
+				if (!methodRule.getReturnType().equals(returnType)) {
+					result.addNonConformingMethod(methodRule, checkingMethod,
+							Reason.RETURN_TYPE);
+				}
 			}
 		}
 
@@ -60,6 +76,7 @@ public class ConformanceChecker {
 		if (Modifier.isPublic(mod))
 			return Visibility.PUBLIC;
 		else
+			// Probably never
 			return Visibility.OTHER;
 	}
 

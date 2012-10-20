@@ -6,6 +6,8 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.gtc.test.Conformity.Visibility;
+
 public class ClassRules implements Comparable<ClassRules> {
 
 	private String name;
@@ -94,6 +96,10 @@ class MethodRule implements Comparable<MethodRule> {
 			return 0;
 
 		return 1;
+	}
+
+	public Visibility getVisibility() {
+		return Visibility.PUBLIC;
 	}
 
 }

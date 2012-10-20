@@ -14,11 +14,12 @@ import org.gtc.compiler.ClassWrapper;
 import org.gtc.compiler.Compiler;
 import org.gtc.compiler.CompilerException;
 import org.gtc.sourcecode.SourceCode;
-import org.gtc.test.ConformanceResult.ClassConformanceResult;
-import org.gtc.test.ConformanceResult.MethodConformanceResult;
+import org.gtc.test.Conformity.Reason;
+import org.gtc.test.ConformityResult.ClassConformityResult;
+import org.gtc.test.ConformityResult.MethodConformityResult;
 import org.junit.Test;
 
-public class ConformanceCheckerTest {
+public class ConformityTest {
 
 	@Test
 	public void testCheck() throws IOException, ParseException, CompilerException {
@@ -30,24 +31,24 @@ public class ConformanceCheckerTest {
 		ClassRules clsRules = new ClassRules(cls.getName());
 		for (Method method : cls.getDeclaredPublicMethods())
 			clsRules.addMethodRule(method);
-		ConformanceRules rules = new ConformanceRules(clsRules);
+		ConformityRules rules = new ConformityRules(clsRules);
 
-		ConformanceChecker checker = new ConformanceChecker(rules);
+		Conformity checker = new Conformity(rules);
 
 		compiler = new Compiler();
 		compiler.addCodes(new SourceCode(resource("examples/NonConform.src")));
 		compiler.compile();
 		Map<String, ClassWrapper> classes = compiler.getClasses();
 
-		ConformanceResult result = checker.check(classes);
-		ClassConformanceResult classCR = result.iterator().next();
+		ConformityResult result = checker.check(classes);
+		ClassConformityResult classCR = result.iterator().next();
 		assertEquals("com.example.Calculator", classCR.getName());
 		assertFalse(classCR.isMissing());
 
-		Iterator<MethodConformanceResult> it = classCR.iterator();
+		Iterator<MethodConformityResult> it = classCR.iterator();
 
 		assertTrue(it.hasNext());
-		MethodConformanceResult methodCR = it.next();
+		MethodConformityResult methodCR = it.next();
 		assertEquals("plus", methodCR.getName());
 		assertTrue(methodCR.isMissing());
 
@@ -55,8 +56,8 @@ public class ConformanceCheckerTest {
 		methodCR = it.next();
 		assertEquals("getCurrentNumber", methodCR.getName());
 		assertFalse(methodCR.isMissing());
-		assertTrue(methodCR.getVisibility().equals(Visibility.PUBLIC));
-		assertFalse(methodCR.isReturnTypeConforming());
+		assertTrue(methodCR.isNonConforming());
+		assertEquals(Reason.RETURN_TYPE, methodCR.getNonConformingReason());
 	}
 
 	private InputStream resource(String name) {

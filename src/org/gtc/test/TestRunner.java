@@ -1,9 +1,11 @@
 package org.gtc.test;
 
+import java.io.File;
 import java.io.FilePermission;
 import java.lang.reflect.Method;
 import java.lang.reflect.ReflectPermission;
 import java.security.Permission;
+import java.util.Properties;
 
 import org.gtc.compiler.ClassWrapper;
 import org.gtc.compiler.Instance;
@@ -11,14 +13,19 @@ import org.gtc.compiler.Instance;
 public class TestRunner {
 	private final static SecurityManager SYS_SEC_MAN = System.getSecurityManager();
 	private final static SecurityManager SAFE_SEC_MAN = new SecurityManager() {
+		private Properties prop = System.getProperties();
+
 		@Override
 		public void checkPermission(Permission perm) {
 			if (perm instanceof ReflectPermission ||
-				new FilePermission("<<ALL FILES>>", "read").implies(perm) ||
-				new RuntimePermission("setSecurityManager").implies(perm))
-			{
+					new RuntimePermission("setSecurityManager").implies(perm))
 				return;
-			}
+
+			String classPath = prop.getProperty("java.class.path");
+			for (String cp : classPath.split(File.pathSeparator))
+				if (new FilePermission(cp, "read").implies(perm))
+					return;
+
 			super.checkPermission(perm);
 		}
 	};
@@ -36,18 +43,20 @@ public class TestRunner {
 		// Execute code
 		final Instance instance = testClass.newInstance();
 		for (Method method : testMethods) {
+			TestStatus status = null;
+			long elapsedTime = 0;
 			try {
 				final long startTime = System.nanoTime();
 				instance.call(method);
-				final long elapsedTime = System.nanoTime() - startTime;
-				result.addMethodResult(method.getName(),
-						new TestMethodResult(true, elapsedTime));
+				elapsedTime = System.nanoTime() - startTime;
+				status = TestStatus.SUCCESS;
 			} catch (AssertionError e) {
-				result.addMethodResult(method.getName(),
-						new TestMethodResult(false, 0));
+				status = TestStatus.FAIL;
 			} catch (Exception e) {
-				throw new RuntimeException("unexpected error", e);
+				status = TestStatus.ERROR;
 			}
+			result.addMethodResult(method.getName(),
+					new TestMethodResult(status, elapsedTime));
 		}
 		final long hardElapsedTime = System.nanoTime() - hardStartTime;
 		result.setElapsedTime(hardElapsedTime);

@@ -35,12 +35,12 @@ public class TestRunnerTest {
 		Map<String, TestMethodResult> methodResults = result.getMethodResults();
 
 		TestMethodResult testCurrentNumber = methodResults.get("testCurrentNumber");
-		assertTrue(testCurrentNumber.getStatus());
+		assertEquals(TestStatus.SUCCESS, testCurrentNumber.getStatus());
 		assertThat(testCurrentNumber.getElapsedTime(),
 				greaterThanOrEqualTo(nanoSeconds(1)));
 
 		TestMethodResult testPlus = methodResults.get("testPlus");
-		assertTrue(testPlus.getStatus());
+		assertEquals(TestStatus.SUCCESS, testPlus.getStatus());
 		assertThat(testPlus.getElapsedTime(),
 				greaterThanOrEqualTo(nanoSeconds(2)));
 	}
