@@ -19,6 +19,7 @@ import javax.swing.JTree;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.MutableTreeNode;
+import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreeSelectionModel;
 
 import org.gtc.compiler.ClassWrapper;
@@ -39,6 +40,7 @@ import java.lang.reflect.Method;
 import java.util.Hashtable;
 import java.util.Map;
 import java.awt.event.KeyEvent;
+import java.awt.event.KeyAdapter;
 
 public class Step1 extends JPanel {
 
@@ -62,7 +64,8 @@ public class Step1 extends JPanel {
 				"To define the master code, you need to <em>Load</em> the project " +
 					"before all.<br/> After that, you can make some adjustments, " +
 					"below, of what classes or methods shall be mandatory in the " +
-					"step of grading entrants code.<br/><br/>" +
+					"step of grading entrants code. Remove what you don't want by " +
+					"pressing <em>Delete</em> at selection.<br/><br/>" +
 				"<html>");
 		add(lblNewLabel, BorderLayout.NORTH);
 
@@ -73,6 +76,26 @@ public class Step1 extends JPanel {
 		treeModel = new DefaultTreeModel(rootNode, true);
 
 		tree = new JTree(treeModel);
+		tree.addKeyListener(new KeyAdapter() {
+			@Override
+			public void keyPressed(KeyEvent evt) {
+				if (evt.getKeyCode() == KeyEvent.VK_DELETE) {
+					int selectionRow = tree.getLeadSelectionRow();
+					if (selectionRow == 0) {
+						showWarningMessage("Warning", "You can't delete the root");
+						return;
+					} else if (selectionRow > 0
+							&& confirmMessage("Confirm to remove",
+									"Do you really want to remove?")) {
+						MutableTreeNode deletingNode = (MutableTreeNode) tree
+								.getLeadSelectionPath().getLastPathComponent();
+						TreeNode parentNode = deletingNode.getParent();
+						deletingNode.removeFromParent();
+						treeModel.reload(parentNode);
+					}
+				}
+			}
+		});
 		tree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
 		tree.setFont(new Font("Dialog", Font.PLAIN, 16));
 		scrollPane.setViewportView(tree);
@@ -106,7 +129,7 @@ public class Step1 extends JPanel {
 		try {
 			compiler = new Compiler();
 		} catch (IOException e) {
-			errorMessage("Error", e);
+			showErrorMessage("Error", e);
 			return;
 		}
 
@@ -118,14 +141,14 @@ public class Step1 extends JPanel {
 				sourceCode = new SourceCode(file);
 				compiler.addCodes(sourceCode);
 			} catch (ParseException e) {
-				errorMessage("Parser Error", e);
+				showErrorMessage("Parser Error", e);
 				return;
 			} catch (DuplicatedCodeException e) {
-				errorMessage("Error", e);
+				showErrorMessage("Error", e);
 				return;
 			} catch (FileNotFoundException e) {
 				// Probably never caught
-				errorMessage("Unexpected Error", e);
+				showErrorMessage("Unexpected Error", e);
 				return;
 			}
 		}
@@ -135,12 +158,13 @@ public class Step1 extends JPanel {
 			compiler.compile(new PrintStream(output));
 		} catch (CompilerException e) {
 			// TODO: Replace by a dialog that show errors in a JTextPane
-			errorMessage("Error", e + "\n" + output);
+			showErrorMessage("Error", e + "\n" + output);
 			return;
 		}
 
 		// Populate the tree TODO: make to be possible remove in the UI
-		Map<String, DefaultMutableTreeNode> packageNodes = new Hashtable<String, DefaultMutableTreeNode>();
+		Map<String, DefaultMutableTreeNode> packageNodes =
+				new Hashtable<String, DefaultMutableTreeNode>();
 		for (ClassWrapper cw : compiler.getClasses().values()) {
 			// Class nodes in packages, similarly to what we se on Eclipse
 			String pkgName = defaultIfNull(cw.getPackageName(), "(default package)");
@@ -151,10 +175,10 @@ public class Step1 extends JPanel {
 			}
 
 			// New node with the class name
-			DefaultMutableTreeNode classNode = new DefaultMutableTreeNode(cw.getSimpleName());
+			ClassTreeNode classNode = new ClassTreeNode(cw);
 			// Insert into class node it methods
 			for (Method method : cw.getDeclaredPublicMethods())
-				classNode.add(new DefaultMutableTreeNode(methodSignature(method), false));
+				classNode.add(new MethodTreeNode(method));
 
 			pkgNode.add(classNode);
 		}
@@ -169,34 +193,16 @@ public class Step1 extends JPanel {
 		btnLoad.setEnabled(false);
 	}
 
-	private void errorMessage(String title, Object message) {
+	private void showErrorMessage(String title, Object message) {
 		JOptionPane.showMessageDialog(this, message, title, JOptionPane.ERROR_MESSAGE);
 	}
 
-	private String methodSignature(Method method) {
-		StringBuffer buffer = new StringBuffer(method.getName());
-		Class<?>[] types = method.getParameterTypes();
-
-		buffer.append("(");
-		if (types.length > 0) {
-			buffer.append(formattedTypeName(types[0]));
-			for (int i = 1; i < types.length; i++)
-				buffer.append(", " + formattedTypeName(types[i]));
-		}
-		buffer.append(")");
-		buffer.append(": ");
-
-		buffer.append(formattedTypeName(method.getReturnType()));
-
-		return buffer.toString();
+	private void showWarningMessage(String title, Object message) {
+		JOptionPane.showMessageDialog(this, message, title, JOptionPane.WARNING_MESSAGE);
 	}
 
-	private String formattedTypeName(Class<?> type) {
-		String name = type.getCanonicalName();
-		if (name.matches("java\\.lang\\.\\w*(?:\\[\\])?"))
-			return name.replaceFirst("java.lang.", "");
-
-		return name;
+	private boolean confirmMessage(String title, Object message) {
+		return JOptionPane.showConfirmDialog(this, message, title, JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION;
 	}
 
 	protected void resetUI() {

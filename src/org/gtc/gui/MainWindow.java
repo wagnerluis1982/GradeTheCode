@@ -122,7 +122,7 @@ public class MainWindow {
 		step1.resetUI();
 	}
 
-	private void showAboutDialog(ActionEvent e) {
+	private void showAboutDialog(ActionEvent evt) {
 		if (aboutDialog == null) {
 			aboutDialog = new AboutDialog();
 			aboutDialog.setLocationRelativeTo(mainFrame);
@@ -131,7 +131,7 @@ public class MainWindow {
 		aboutDialog.setVisible(true);
 	}
 
-	private void quitApplication(ActionEvent e) {
+	private void quitApplication(ActionEvent evt) {
 		if (showConfirmDialog(mainFrame, "Do you really want to quit?",
 				"Confirm", YES_NO_OPTION) == 0)
 			System.exit(0);
