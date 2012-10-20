@@ -36,6 +36,16 @@ public class ClassWrapper {
 		return null;
 	}
 
+	public Method getDeclaredMethod(String name, Class<?>... parameterTypes) {
+		try {
+			return this.javaClass.getDeclaredMethod(name, parameterTypes);
+		} catch (NoSuchMethodException e) {
+		} catch (SecurityException e) {
+		}
+
+		return null;
+	}
+
 	public Method[] getDeclaredMethods() {
 		this.declaredMethods = this.declaredMethods != null ? this.declaredMethods
 				: this.javaClass.getDeclaredMethods();
