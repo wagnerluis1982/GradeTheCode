@@ -12,7 +12,6 @@ import java.awt.Font;
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTree;
@@ -48,6 +47,8 @@ public class Step1 extends JPanel {
 	private DefaultTreeModel treeModel;
 	private JTree tree;
 	private JButton btnLoad;
+	private GuiUtil util = new GuiUtil(this);
+	private JFileChooser loadFileChooser;
 
 	/**
 	 * Create the panel.
@@ -55,7 +56,12 @@ public class Step1 extends JPanel {
 	public Step1() {
 		setLayout(new BorderLayout(0, 0));
 
-		JLabel lblNewLabel = new JLabel("<html>" +
+		loadFileChooser = new JFileChooser();
+		loadFileChooser.setMultiSelectionEnabled(false);
+		loadFileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+		loadFileChooser.setDialogTitle("Choose a src folder");
+
+		JLabel lblMessage = new JLabel("<html>" +
 				"<h1>Step 1 - Master Code</h1>" +
 				"Define an expected set of code to compound the master code.<br/>" +
 				"The <em>master code</em> is the basis code used for grading " +
@@ -67,7 +73,7 @@ public class Step1 extends JPanel {
 					"step of grading entrants code. Remove what you don't want by " +
 					"pressing <em>Delete</em> at selection.<br/><br/>" +
 				"<html>");
-		add(lblNewLabel, BorderLayout.NORTH);
+		add(lblMessage, BorderLayout.NORTH);
 
 		JScrollPane scrollPane = new JScrollPane();
 		add(scrollPane, BorderLayout.CENTER);
@@ -76,24 +82,12 @@ public class Step1 extends JPanel {
 		treeModel = new DefaultTreeModel(rootNode, true);
 
 		tree = new JTree(treeModel);
+		tree.setRootVisible(false);
 		tree.addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyPressed(KeyEvent evt) {
-				if (evt.getKeyCode() == KeyEvent.VK_DELETE) {
-					int selectionRow = tree.getLeadSelectionRow();
-					if (selectionRow == 0) {
-						showWarningMessage("Warning", "You can't delete the root");
-						return;
-					} else if (selectionRow > 0
-							&& confirmMessage("Confirm to remove",
-									"Do you really want to remove?")) {
-						MutableTreeNode deletingNode = (MutableTreeNode) tree
-								.getLeadSelectionPath().getLastPathComponent();
-						TreeNode parentNode = deletingNode.getParent();
-						deletingNode.removeFromParent();
-						treeModel.reload(parentNode);
-					}
-				}
+				if (evt.getKeyCode() == KeyEvent.VK_DELETE)
+					removeFromTree();
 			}
 		});
 		tree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
@@ -115,13 +109,8 @@ public class Step1 extends JPanel {
 	}
 
 	private void loadCodeInTree(ActionEvent evt) {
-		JFileChooser fileChooser = new JFileChooser();
-		fileChooser.setMultiSelectionEnabled(false);
-		fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-		fileChooser.setDialogTitle("Choose a src folder");
-
-		// If any directory was selected
-		if (fileChooser.showOpenDialog(this) != JFileChooser.APPROVE_OPTION)
+		// If any directory wasn't selected
+		if (loadFileChooser.showOpenDialog(this) != JFileChooser.APPROVE_OPTION)
 			return;
 
 		// Compile files
@@ -129,11 +118,11 @@ public class Step1 extends JPanel {
 		try {
 			compiler = new Compiler();
 		} catch (IOException e) {
-			showErrorMessage("Error", e);
+			util.errorMessage("Error", e);
 			return;
 		}
 
-		File selectedDir = fileChooser.getSelectedFile();
+		File selectedDir = loadFileChooser.getSelectedFile();
 		File[] javaFiles = listFilesRecursive(selectedDir, "java");
 		for (File file : javaFiles) {
 			SourceCode sourceCode = null;
@@ -141,14 +130,14 @@ public class Step1 extends JPanel {
 				sourceCode = new SourceCode(file);
 				compiler.addCodes(sourceCode);
 			} catch (ParseException e) {
-				showErrorMessage("Parser Error", e);
+				util.errorMessage("Parser Error", e);
 				return;
 			} catch (DuplicatedCodeException e) {
-				showErrorMessage("Error", e);
+				util.errorMessage("Error", e);
 				return;
 			} catch (FileNotFoundException e) {
 				// Probably never caught
-				showErrorMessage("Unexpected Error", e);
+				util.errorMessage("Unexpected Error", e);
 				return;
 			}
 		}
@@ -158,11 +147,11 @@ public class Step1 extends JPanel {
 			compiler.compile(new PrintStream(output));
 		} catch (CompilerException e) {
 			// TODO: Replace by a dialog that show errors in a JTextPane
-			showErrorMessage("Error", e + "\n" + output);
+			util.errorMessage("Error", e + "\n" + output);
 			return;
 		}
 
-		// Populate the tree TODO: make to be possible remove in the UI
+		// Populate the tree
 		Map<String, DefaultMutableTreeNode> packageNodes =
 				new Hashtable<String, DefaultMutableTreeNode>();
 		for (ClassWrapper cw : compiler.getClasses().values()) {
@@ -189,25 +178,31 @@ public class Step1 extends JPanel {
 		treeModel.reload(rootNode);
 
 		// Some UI actions
+		tree.setRootVisible(true);
 		tree.expandRow(0);
 		btnLoad.setEnabled(false);
 	}
 
-	private void showErrorMessage(String title, Object message) {
-		JOptionPane.showMessageDialog(this, message, title, JOptionPane.ERROR_MESSAGE);
-	}
-
-	private void showWarningMessage(String title, Object message) {
-		JOptionPane.showMessageDialog(this, message, title, JOptionPane.WARNING_MESSAGE);
-	}
-
-	private boolean confirmMessage(String title, Object message) {
-		return JOptionPane.showConfirmDialog(this, message, title, JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION;
+	private void removeFromTree() {
+		int selectionRow = tree.getLeadSelectionRow();
+		if (selectionRow == 0) {
+			util.warningMessage("Warning", "You can't delete the root");
+			return;
+		} else if (selectionRow > 0
+				&& util.confirmMessage("Confirm to remove",
+						"Do you really want to remove?")) {
+			MutableTreeNode deletingNode = (MutableTreeNode) tree
+					.getLeadSelectionPath().getLastPathComponent();
+			TreeNode parentNode = deletingNode.getParent();
+			deletingNode.removeFromParent();
+			treeModel.reload(parentNode);
+		}
 	}
 
 	protected void resetUI() {
 		// Restore tree
 		rootNode.removeAllChildren();
+		tree.setRootVisible(false);
 		treeModel.reload(rootNode);
 
 		// Enable load button

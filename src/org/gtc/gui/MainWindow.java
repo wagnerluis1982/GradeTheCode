@@ -1,8 +1,5 @@
 package org.gtc.gui;
 
-import static javax.swing.JOptionPane.YES_NO_OPTION;
-import static javax.swing.JOptionPane.showConfirmDialog;
-
 import java.awt.BorderLayout;
 import java.awt.EventQueue;
 import java.awt.event.ActionEvent;
@@ -22,7 +19,9 @@ public class MainWindow {
 
 	private JFrame mainFrame;
 	private AboutDialog aboutDialog;
+	private GuiUtil util = new GuiUtil(mainFrame);
 	private Step1 step1;
+	private Step2 step2;
 
 	/**
 	 * Launch the application.
@@ -116,10 +115,14 @@ public class MainWindow {
 
 		step1 = new Step1();
 		tabbedPane.addTab("Step 1", null, step1, null);
+
+		step2 = new Step2();
+		tabbedPane.addTab("Step 2", null, step2, null);
 	}
 
 	private void newProject(ActionEvent evt) {
 		step1.resetUI();
+		step2.resetUI();
 	}
 
 	private void showAboutDialog(ActionEvent evt) {
@@ -132,8 +135,7 @@ public class MainWindow {
 	}
 
 	private void quitApplication(ActionEvent evt) {
-		if (showConfirmDialog(mainFrame, "Do you really want to quit?",
-				"Confirm", YES_NO_OPTION) == 0)
+		if (util.confirmMessage("Confirm", "Do you really want to quit?"))
 			System.exit(0);
 	}
 
