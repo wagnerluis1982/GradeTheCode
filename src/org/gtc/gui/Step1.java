@@ -25,6 +25,8 @@ import org.gtc.compiler.ClassWrapper;
 import org.gtc.compiler.Compiler;
 import org.gtc.compiler.CompilerException;
 import org.gtc.compiler.DuplicatedCodeException;
+import org.gtc.gui.stuff.ClassTreeNode;
+import org.gtc.gui.stuff.MethodTreeNode;
 import org.gtc.gui.util.Dialogs;
 import org.gtc.sourcecode.SourceCode;
 

@@ -36,7 +36,7 @@ public class Step2 extends JPanel {
 
 		JLabel lblMessage = new JLabel("<html>" +
 				"<h1>Step 2 - Test Code</h1>" +
-				"Open files to be used as test code for the project.<br/><br/>" +
+				"Add files to be used as test code for the project.<br/><br/>" +
 				"Test codes are java sources that call parts of the real code " +
 					"(here named Master Code), making some asserts. The concept " +
 					"is the same of JUnit but it's not needed to use the JUnit " +
@@ -67,6 +67,7 @@ public class Step2 extends JPanel {
 		});
 
 		JButton btnAddFolder = new JButton("Add folder");
+		btnAddFolder.setToolTipText("Add one folder with java source files");
 		btnAddFolder.setMnemonic(KeyEvent.VK_P);
 		btnAddFolder.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent evt) {

@@ -1,4 +1,4 @@
-package org.gtc.gui;
+package org.gtc.gui.stuff;
 
 import javax.swing.tree.DefaultMutableTreeNode;
 

@@ -24,6 +24,7 @@ public class MainWindow {
 	private Dialogs dialogs = new Dialogs(mainFrame);
 	private Step1 step1;
 	private Step2 step2;
+	private Step3 step3;
 
 	/**
 	 * Launch the application.
@@ -116,10 +117,13 @@ public class MainWindow {
 		mainFrame.getContentPane().add(tabbedPane, BorderLayout.CENTER);
 
 		step1 = new Step1();
-		tabbedPane.addTab("Step 1", null, step1, null);
+		tabbedPane.addTab("Step 1", step1);
 
 		step2 = new Step2();
-		tabbedPane.addTab("Step 2", null, step2, null);
+		tabbedPane.addTab("Step 2", step2);
+
+		step3 = new Step3();
+		tabbedPane.addTab("Step 3", step3);
 	}
 
 	private void newProject(ActionEvent evt) {

@@ -1,4 +1,4 @@
-package org.gtc.gui;
+package org.gtc.gui.stuff;
 
 import java.lang.reflect.Method;
 
