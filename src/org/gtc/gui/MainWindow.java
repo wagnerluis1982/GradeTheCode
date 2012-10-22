@@ -15,11 +15,13 @@ import javax.swing.JSeparator;
 import javax.swing.JTabbedPane;
 import javax.swing.KeyStroke;
 
+import org.gtc.gui.util.Dialogs;
+
 public class MainWindow {
 
 	private JFrame mainFrame;
 	private AboutDialog aboutDialog;
-	private GuiUtil util = new GuiUtil(mainFrame);
+	private Dialogs dialogs = new Dialogs(mainFrame);
 	private Step1 step1;
 	private Step2 step2;
 
@@ -51,7 +53,7 @@ public class MainWindow {
 	 */
 	private void initialize() {
 		mainFrame = new JFrame("Grade The Code v0.0.1");
-		mainFrame.setSize(640, 480);
+		mainFrame.setSize(750, 550);
 		mainFrame.setLocationRelativeTo(null);
 		mainFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
@@ -135,7 +137,7 @@ public class MainWindow {
 	}
 
 	private void quitApplication(ActionEvent evt) {
-		if (util.confirmMessage("Confirm", "Do you really want to quit?"))
+		if (dialogs.confirmMessage("Confirm", "Do you really want to quit?"))
 			System.exit(0);
 	}
 

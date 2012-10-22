@@ -1,6 +1,7 @@
 package org.gtc.gui;
 
 import java.awt.BorderLayout;
+import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.event.KeyEvent;
@@ -18,6 +19,7 @@ import javax.swing.JTextPane;
 import javax.swing.KeyStroke;
 
 import org.gtc.gui.actions.DisposeAction;
+import org.gtc.util.Util;
 
 public class AboutDialog extends JDialog {
 
@@ -65,7 +67,7 @@ public class AboutDialog extends JDialog {
 				JTextPane licenseText = new JTextPane();
 
 				// Read LICENSE file
-				InputStream license = getClass().getResourceAsStream("LICENSE");
+				InputStream license = Util.class.getResourceAsStream("LICENSE");
 				if (license != null)
 					try {
 						licenseText.read(new InputStreamReader(license), "");
@@ -73,7 +75,7 @@ public class AboutDialog extends JDialog {
 				else
 					licenseText.setText("Could not read licensing file");
 
-				setMinimumSize(licenseText.getPreferredSize());
+				setMinimumSize(new Dimension(550, 250));
 
 				// This pane is not editable
 				licenseText.setEditable(false);

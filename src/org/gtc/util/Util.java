@@ -8,15 +8,15 @@ import java.util.List;
 
 public class Util {
 
-	public static File[] listFilesRecursive(File dir, final String ...extensions) {
+	public static File[] listFilesRecursive(File dir, final String ...suffixes) {
 		FilenameFilter filter = new FilenameFilter() {
 			@Override
 			public boolean accept(File dir, String name) {
 				if (new File(dir.getAbsolutePath() + File.separator + name).isDirectory())
 					return true;
 				else {
-					for (String ext : extensions)
-						if (name.endsWith(ext))
+					for (String suffix : suffixes)
+						if (name.endsWith(suffix))
 							return true;
 				}
 				return false;

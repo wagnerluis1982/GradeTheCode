@@ -25,6 +25,7 @@ import org.gtc.compiler.ClassWrapper;
 import org.gtc.compiler.Compiler;
 import org.gtc.compiler.CompilerException;
 import org.gtc.compiler.DuplicatedCodeException;
+import org.gtc.gui.util.Dialogs;
 import org.gtc.sourcecode.SourceCode;
 
 import java.awt.event.ActionListener;
@@ -43,23 +44,18 @@ import java.awt.event.KeyAdapter;
 
 public class Step1 extends JPanel {
 
-	private DefaultMutableTreeNode rootNode;
-	private DefaultTreeModel treeModel;
 	private JTree tree;
+	private DefaultTreeModel treeModel;
+	private DefaultMutableTreeNode rootNode;
 	private JButton btnLoad;
-	private GuiUtil util = new GuiUtil(this);
-	private JFileChooser loadFileChooser;
+	private JFileChooser openDirChooser;
+	private Dialogs dialogs = new Dialogs(this);
 
 	/**
 	 * Create the panel.
 	 */
 	public Step1() {
 		setLayout(new BorderLayout(0, 0));
-
-		loadFileChooser = new JFileChooser();
-		loadFileChooser.setMultiSelectionEnabled(false);
-		loadFileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-		loadFileChooser.setDialogTitle("Choose a src folder");
 
 		JLabel lblMessage = new JLabel("<html>" +
 				"<h1>Step 1 - Master Code</h1>" +
@@ -109,8 +105,15 @@ public class Step1 extends JPanel {
 	}
 
 	private void loadCodeInTree(ActionEvent evt) {
+		if (openDirChooser == null) {
+			openDirChooser = new JFileChooser();
+			openDirChooser.setMultiSelectionEnabled(false);
+			openDirChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+			openDirChooser.setDialogTitle("Choose a src folder");
+		}
+
 		// If any directory wasn't selected
-		if (loadFileChooser.showOpenDialog(this) != JFileChooser.APPROVE_OPTION)
+		if (openDirChooser.showOpenDialog(this) != JFileChooser.APPROVE_OPTION)
 			return;
 
 		// Compile files
@@ -118,26 +121,26 @@ public class Step1 extends JPanel {
 		try {
 			compiler = new Compiler();
 		} catch (IOException e) {
-			util.errorMessage("Error", e);
+			dialogs.errorMessage("Error", e);
 			return;
 		}
 
-		File selectedDir = loadFileChooser.getSelectedFile();
-		File[] javaFiles = listFilesRecursive(selectedDir, "java");
+		File selectedDir = openDirChooser.getSelectedFile();
+		File[] javaFiles = listFilesRecursive(selectedDir, ".java");
 		for (File file : javaFiles) {
 			SourceCode sourceCode = null;
 			try {
 				sourceCode = new SourceCode(file);
 				compiler.addCodes(sourceCode);
 			} catch (ParseException e) {
-				util.errorMessage("Parser Error", e);
+				dialogs.errorMessage("Parser Error", e);
 				return;
 			} catch (DuplicatedCodeException e) {
-				util.errorMessage("Error", e);
+				dialogs.errorMessage("Error", e);
 				return;
 			} catch (FileNotFoundException e) {
 				// Probably never caught
-				util.errorMessage("Unexpected Error", e);
+				dialogs.errorMessage("Unexpected Error", e);
 				return;
 			}
 		}
@@ -147,7 +150,7 @@ public class Step1 extends JPanel {
 			compiler.compile(new PrintStream(output));
 		} catch (CompilerException e) {
 			// TODO: Replace by a dialog that show errors in a JTextPane
-			util.errorMessage("Error", e + "\n" + output);
+			dialogs.errorMessage("Error", e + "\n" + output);
 			return;
 		}
 
@@ -186,10 +189,10 @@ public class Step1 extends JPanel {
 	private void removeFromTree() {
 		int selectionRow = tree.getLeadSelectionRow();
 		if (selectionRow == 0) {
-			util.warningMessage("Warning", "You can't delete the root");
+			dialogs.warningMessage("Warning", "You can't delete the root");
 			return;
 		} else if (selectionRow > 0
-				&& util.confirmMessage("Confirm to remove",
+				&& dialogs.confirmMessage("Confirm to remove",
 						"Do you really want to remove?")) {
 			MutableTreeNode deletingNode = (MutableTreeNode) tree
 					.getLeadSelectionPath().getLastPathComponent();
