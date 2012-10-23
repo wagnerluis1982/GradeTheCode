@@ -2,6 +2,8 @@ package org.gtc.gui;
 
 import static org.gtc.util.Util.listFilesRecursive;
 
+import japa.parser.ParseException;
+
 import javax.swing.JPanel;
 import java.awt.BorderLayout;
 
@@ -16,12 +18,20 @@ import javax.swing.JList;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
 import org.gtc.gui.components.CList;
+import org.gtc.sourcecode.SourceCode;
 
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.util.ArrayList;
+import java.util.Enumeration;
+import java.util.List;
 
 public class Step2 extends JPanel {
+
+	@SuppressWarnings("unused")
+	private MainWindow window;
 
 	private JList<File> list;
 	private DefaultListModel<File> listModel;
@@ -30,8 +40,11 @@ public class Step2 extends JPanel {
 
 	/**
 	 * Create the panel.
+	 * @param window
 	 */
-	public Step2() {
+	public Step2(MainWindow window) {
+		this.window = window;
+
 		setLayout(new BorderLayout(0, 0));
 
 		JLabel lblMessage = new JLabel("<html>" +
@@ -119,7 +132,25 @@ public class Step2 extends JPanel {
 			listModel.addElement(file);
 	}
 
-	public void resetUI() {
+	protected SourceCode[] getTestSourceCodes() throws ParseException, FileNotFoundException {
+		List<SourceCode> sourceCodes = new ArrayList<SourceCode>();
+
+		// Associate each File to a new SourceCode
+		Enumeration<File> fileEnum = listModel.elements();
+		while (fileEnum.hasMoreElements()) {
+			File file = fileEnum.nextElement();
+			try {
+				sourceCodes.add(new SourceCode(file));
+			} catch (FileNotFoundException e) {
+				throw new FileNotFoundException(
+						String.format("test file \"%s\" not found", file));
+			}
+		}
+
+		return sourceCodes.toArray(new SourceCode[0]);
+	}
+
+	protected void resetUI() {
 		listModel.clear();
 	}
 

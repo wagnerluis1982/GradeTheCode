@@ -5,6 +5,8 @@ import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.gtc.sourcecode.SourceCode;
+
 public class ClassWrapper {
 
 	private final Class<?> javaClass;
@@ -12,8 +14,11 @@ public class ClassWrapper {
 	private Method[] publicMethods;
 	private Method[] testMethods;
 
-	public ClassWrapper(Class<?> javaClass) {
+	private SourceCode sourceCode;
+
+	public ClassWrapper(Class<?> javaClass, SourceCode sourceCode) {
 		this.javaClass = javaClass;
+		this.sourceCode = sourceCode;
 	}
 
 	public Class<?> getJavaClass() {
@@ -88,6 +93,10 @@ public class ClassWrapper {
 		}
 
 		return null;
+	}
+
+	public SourceCode getSourceCode() {
+		return sourceCode;
 	}
 
 }

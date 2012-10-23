@@ -27,7 +27,6 @@ import org.gtc.compiler.CompilerException;
 import org.gtc.compiler.DuplicatedCodeException;
 import org.gtc.gui.stuff.ClassTreeNode;
 import org.gtc.gui.stuff.MethodTreeNode;
-import org.gtc.gui.util.Dialogs;
 import org.gtc.sourcecode.SourceCode;
 
 import java.awt.event.ActionListener;
@@ -39,24 +38,31 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.Hashtable;
+import java.util.List;
 import java.util.Map;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyAdapter;
 
 public class Step1 extends JPanel {
 
+	private MainWindow window;
+
 	private JTree tree;
 	private DefaultTreeModel treeModel;
 	private DefaultMutableTreeNode rootNode;
 	private JButton btnLoad;
 	private JFileChooser openDirChooser;
-	private Dialogs dialogs = new Dialogs(this);
 
 	/**
 	 * Create the panel.
+	 * @param window
 	 */
-	public Step1() {
+	public Step1(MainWindow window) {
+		this.window = window;
+
 		setLayout(new BorderLayout(0, 0));
 
 		JLabel lblMessage = new JLabel("<html>" +
@@ -123,7 +129,7 @@ public class Step1 extends JPanel {
 		try {
 			compiler = new Compiler();
 		} catch (IOException e) {
-			dialogs.errorMessage("Error", e);
+			window.dialogs.errorMessage("Error", e);
 			return;
 		}
 
@@ -135,14 +141,14 @@ public class Step1 extends JPanel {
 				sourceCode = new SourceCode(file);
 				compiler.addCodes(sourceCode);
 			} catch (ParseException e) {
-				dialogs.errorMessage("Parser Error", e);
+				window.dialogs.errorMessage("Parser Error", e);
 				return;
 			} catch (DuplicatedCodeException e) {
-				dialogs.errorMessage("Error", e);
+				window.dialogs.errorMessage("Error", e);
 				return;
 			} catch (FileNotFoundException e) {
 				// Probably never caught
-				dialogs.errorMessage("Unexpected Error", e);
+				window.dialogs.errorMessage("Unexpected Error", e);
 				return;
 			}
 		}
@@ -152,7 +158,7 @@ public class Step1 extends JPanel {
 			compiler.compile(new PrintStream(output));
 		} catch (CompilerException e) {
 			// TODO: Replace by a dialog that show errors in a JTextPane
-			dialogs.errorMessage("Error", e + "\n" + output);
+			window.dialogs.errorMessage("Error", e + "\n" + output);
 			return;
 		}
 
@@ -191,10 +197,10 @@ public class Step1 extends JPanel {
 	private void removeFromTree() {
 		int selectionRow = tree.getLeadSelectionRow();
 		if (selectionRow == 0) {
-			dialogs.warningMessage("Warning", "You can't delete the root");
+			window.dialogs.warningMessage("Warning", "You can't delete the root");
 			return;
 		} else if (selectionRow > 0
-				&& dialogs.confirmMessage("Confirm to remove",
+				&& window.dialogs.confirmMessage("Confirm to remove",
 						"Do you really want to remove?")) {
 			MutableTreeNode deletingNode = (MutableTreeNode) tree
 					.getLeadSelectionPath().getLastPathComponent();
@@ -202,6 +208,25 @@ public class Step1 extends JPanel {
 			deletingNode.removeFromParent();
 			treeModel.reload(parentNode);
 		}
+	}
+
+	protected SourceCode[] getMasterSourceCodes() {
+		List<SourceCode> sourceCodes = new ArrayList<SourceCode>();
+
+		// Walk over packages
+		Enumeration<?> pkgEnum = rootNode.children();
+		while (pkgEnum.hasMoreElements()) {
+			TreeNode pkgNode = (DefaultMutableTreeNode) pkgEnum.nextElement();
+
+			// Walk over classes
+			Enumeration<?> classEnum = pkgNode.children();
+			while (classEnum.hasMoreElements()) {
+				ClassTreeNode classNode = (ClassTreeNode) classEnum.nextElement();
+				sourceCodes.add(classNode.getClassWrapper().getSourceCode());
+			}
+		}
+
+		return sourceCodes.toArray(new SourceCode[0]);
 	}
 
 	protected void resetUI() {

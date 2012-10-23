@@ -144,7 +144,7 @@ public class Compiler {
 			for (SourceCode code : this.codes) {
 				String name = code.getName();
 				Class<?> klass = classLoader.loadClass(name);
-				classesMap.put(name, new ClassWrapper(klass));
+				classesMap.put(name, new ClassWrapper(klass, code));
 			}
 		} catch (ClassNotFoundException e) {
 			throw new CompilerException("error compiling class " + e);

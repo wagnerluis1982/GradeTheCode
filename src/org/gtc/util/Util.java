@@ -61,6 +61,18 @@ public class Util {
 		return millis * 1000000;
 	}
 
+	public static String pathJoin(String... pieces) {
+		if (pieces.length == 0)
+			return "";
+
+		StringBuffer buffer = new StringBuffer(pieces[0]);
+
+		for (int i = 1; i < pieces.length; i++)
+			buffer.append(File.separator + pieces[i]);
+
+		return buffer.toString();
+	}
+
 	/**
 	 * Atomically creates a new directory somewhere beneath the system's
 	 * temporary directory (as defined by the {@code java.io.tmpdir} system
