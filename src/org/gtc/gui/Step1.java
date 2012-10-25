@@ -114,7 +114,7 @@ public class Step1 extends JPanel {
 
 	private void loadCodeInTree(ActionEvent evt) {
 		if (openDirChooser == null) {
-			openDirChooser = new JFileChooser();
+			openDirChooser = window.getFileChooser();
 			openDirChooser.setMultiSelectionEnabled(false);
 			openDirChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
 			openDirChooser.setDialogTitle("Choose a src folder");

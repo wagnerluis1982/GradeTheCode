@@ -10,6 +10,7 @@ import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 
+import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
@@ -24,6 +25,7 @@ public class MainWindow {
 
 	private JFrame mainFrame;
 	private AboutDialog aboutDialog;
+	private JFileChooser fileChooser;
 	Dialogs dialogs = new Dialogs(mainFrame);
 
 	Step1 step1;
@@ -154,6 +156,14 @@ public class MainWindow {
 	private void quitApplication(AWTEvent evt) {
 		if (dialogs.confirmMessage("Confirm", "Do you really want to quit?"))
 			System.exit(0);
+	}
+
+	public JFileChooser getFileChooser() {
+		if (fileChooser == null) {
+			fileChooser = new JFileChooser();
+		}
+
+		return fileChooser;
 	}
 
 }

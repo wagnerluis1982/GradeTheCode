@@ -4,6 +4,7 @@ import japa.parser.ParseException;
 
 import javax.swing.JPanel;
 import java.awt.BorderLayout;
+import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -26,6 +27,7 @@ import org.gtc.compiler.Compiler;
 import org.gtc.compiler.CompilerException;
 import org.gtc.compiler.DuplicatedCodeException;
 import org.gtc.gui.components.CList;
+import org.gtc.gui.components.CMessageDialog;
 import org.gtc.gui.stuff.GradeEntry;
 import org.gtc.sourcecode.SourceCode;
 import org.gtc.test.TestResult;
@@ -43,6 +45,8 @@ public class Step3 extends JPanel {
 	private JList<File> list;
 	private DefaultListModel<File> listModel;
 	private JFileChooser openDirChooser;
+
+	private CMessageDialog gradesDialog;
 
 	/**
 	 * Create the panel.
@@ -93,7 +97,7 @@ public class Step3 extends JPanel {
 
 	private void addSourceFolders(ActionEvent evt) {
 		if (openDirChooser == null) {
-			openDirChooser = new JFileChooser();
+			openDirChooser = window.getFileChooser();
 			openDirChooser.setMultiSelectionEnabled(true);
 			openDirChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
 			openDirChooser.setDialogTitle("Choose source code folders");
@@ -196,7 +200,14 @@ public class Step3 extends JPanel {
 		html.append("</table>");
 		html.append("</html>");
 
-		window.dialogs.warningMessage("TEST", html);
+		// Show grades
+		if (gradesDialog == null) {
+			gradesDialog = new CMessageDialog("Entrants Grades");
+			gradesDialog.setMinimumSize(new Dimension(640, 480));
+		}
+		gradesDialog.setLocationRelativeTo(this);
+		gradesDialog.setHtmlMessage(html);
+		gradesDialog.setVisible(true);
 	}
 
 	protected void resetUI() {
