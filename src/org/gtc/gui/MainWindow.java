@@ -158,10 +158,11 @@ public class MainWindow {
 			System.exit(0);
 	}
 
-	public JFileChooser getFileChooser() {
-		if (fileChooser == null) {
+	public JFileChooser newFileChooser() {
+		if (fileChooser == null)
 			fileChooser = new JFileChooser();
-		}
+		else
+			fileChooser = new JFileChooser(fileChooser.getCurrentDirectory());
 
 		return fileChooser;
 	}

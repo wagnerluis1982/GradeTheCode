@@ -28,6 +28,8 @@ import org.gtc.compiler.DuplicatedCodeException;
 import org.gtc.gui.stuff.ClassTreeNode;
 import org.gtc.gui.stuff.MethodTreeNode;
 import org.gtc.sourcecode.SourceCode;
+import org.gtc.test.ClassRules;
+import org.gtc.test.ConformityRules;
 
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
@@ -114,7 +116,7 @@ public class Step1 extends JPanel {
 
 	private void loadCodeInTree(ActionEvent evt) {
 		if (openDirChooser == null) {
-			openDirChooser = window.getFileChooser();
+			openDirChooser = window.newFileChooser();
 			openDirChooser.setMultiSelectionEnabled(false);
 			openDirChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
 			openDirChooser.setDialogTitle("Choose a src folder");
@@ -227,6 +229,34 @@ public class Step1 extends JPanel {
 		}
 
 		return sourceCodes.toArray(new SourceCode[0]);
+	}
+
+	public ConformityRules getConformityRules() {
+		List<ClassRules> classesRules = new ArrayList<ClassRules>();
+
+		// Walk over packages
+		Enumeration<?> pkgEnum = rootNode.children();
+		while (pkgEnum.hasMoreElements()) {
+			TreeNode pkgNode = (DefaultMutableTreeNode) pkgEnum.nextElement();
+
+			// Walk over classes
+			Enumeration<?> classEnum = pkgNode.children();
+			while (classEnum.hasMoreElements()) {
+				ClassTreeNode classNode = (ClassTreeNode) classEnum.nextElement();
+
+				// Walk over methods to create a new ClassRules
+				ClassRules clsRules = new ClassRules(classNode.getClassWrapper().getName());
+				Enumeration<?> methodEnum = classNode.children();
+				while (methodEnum.hasMoreElements()) {
+					MethodTreeNode methodNode = (MethodTreeNode) methodEnum.nextElement();
+					clsRules.addMethodRule(methodNode.getMethod());
+				}
+
+				classesRules.add(clsRules);
+			}
+		}
+
+		return new ConformityRules(classesRules.toArray(new ClassRules[0]));
 	}
 
 	protected void resetUI() {

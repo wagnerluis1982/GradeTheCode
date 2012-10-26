@@ -37,6 +37,8 @@ public class Step2 extends JPanel {
 
 	private JList<File> list;
 	private DefaultListModel<File> listModel;
+	private JFileChooser openFilesChooser;
+	private JFileChooser openDirChooser;
 
 	/**
 	 * Create the panel.
@@ -96,8 +98,8 @@ public class Step2 extends JPanel {
 
 	protected void addFiles(ActionEvent evt) {
 		if (openFilesChooser == null) {
-			openFilesChooser = window.getFileChooser();
-			openFilesChooser.setFileFilter(new FileNameExtensionFilter("Java Source Code", "java"));
+			openFilesChooser = window.newFileChooser();
+			openFilesChooser.setFileFilter(JAVA_SOURCE_FILTER);
 			openFilesChooser.setMultiSelectionEnabled(true);
 			openFilesChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
 			openFilesChooser.setDialogTitle("Choose java source files");
@@ -114,7 +116,7 @@ public class Step2 extends JPanel {
 
 	protected void addFolder(ActionEvent evt) {
 		if (openDirChooser == null) {
-			openDirChooser = window.getFileChooser();
+			openDirChooser = window.newFileChooser();
 			openDirChooser.setMultiSelectionEnabled(false);
 			openDirChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
 			openDirChooser.setDialogTitle("Choose a folder with java source files");

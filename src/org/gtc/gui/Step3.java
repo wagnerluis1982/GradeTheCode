@@ -1,5 +1,6 @@
 package org.gtc.gui;
 
+import static org.gtc.util.Util.pathJoin;
 import japa.parser.ParseException;
 
 import javax.swing.JPanel;
@@ -26,13 +27,14 @@ import org.gtc.compiler.ClassWrapper;
 import org.gtc.compiler.Compiler;
 import org.gtc.compiler.CompilerException;
 import org.gtc.compiler.DuplicatedCodeException;
+import org.gtc.grade.Grader;
 import org.gtc.gui.components.CList;
 import org.gtc.gui.components.CMessageDialog;
-import org.gtc.gui.stuff.GradeEntry;
+import org.gtc.grade.GradeResult;
 import org.gtc.sourcecode.SourceCode;
+import org.gtc.test.ConformityRules;
 import org.gtc.test.TestResult;
 import org.gtc.test.TestRunner;
-import org.gtc.util.Util;
 
 import javax.swing.JButton;
 import java.awt.event.ActionListener;
@@ -97,7 +99,7 @@ public class Step3 extends JPanel {
 
 	private void addSourceFolders(ActionEvent evt) {
 		if (openDirChooser == null) {
-			openDirChooser = window.getFileChooser();
+			openDirChooser = window.newFileChooser();
 			openDirChooser.setMultiSelectionEnabled(true);
 			openDirChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
 			openDirChooser.setDialogTitle("Choose source code folders");
@@ -144,20 +146,25 @@ public class Step3 extends JPanel {
 		try {
 			compiler.compile(new PrintStream(output));
 		} catch (CompilerException e) {
-			// TODO: Replace by a dialog that show errors in a JTextPane
-			window.dialogs.errorMessage("Error", e + "\n" + output);
+			CMessageDialog errorDialog = new CMessageDialog("Compile error", e.toString());
+			errorDialog.useSmallTitleFont();
+			errorDialog.setMessage(output.toString());
+			errorDialog.setLocationRelativeTo(this);
+			errorDialog.setVisible(true);
 			return;
 		}
 
 		// Run tests on master code
-		ClassWrapper[] assertionClasses = compiler.getAssertionClasses();
 		TestRunner testRunner = new TestRunner();
 		List<TestResult> masterTestResults = new ArrayList<TestResult>();
-		for (ClassWrapper testClass : assertionClasses)
+		for (ClassWrapper testClass : compiler.getAssertionClasses())
 			masterTestResults.add(testRunner.runTest(testClass));
 
+		final ConformityRules conformityRules = window.step1.getConformityRules();
+		Grader grader = new Grader(conformityRules, masterTestResults);
+
 		// Grade each entrant in the list
-		List<GradeEntry> entrantsGrades = new ArrayList<GradeEntry>();
+		List<GradeResult> entrantsGrades = new ArrayList<GradeResult>();
 		Enumeration<File> entrantsEnum = listModel.elements();
 		while (entrantsEnum.hasMoreElements()) {
 			File dir = entrantsEnum.nextElement();
@@ -166,19 +173,22 @@ public class Step3 extends JPanel {
 			// Create SourceCode objects for this entrant
 			List<SourceCode> codes = new ArrayList<SourceCode>();
 			for (SourceCode code : masterCodes) {
-				String pkgDir = code.getName().replace('.', File.separatorChar);
-				String sourcePath = Util.pathJoin(dir.getAbsolutePath(), pkgDir + ".java");
-				File sourceFile = new File(sourcePath);
+				String basePath = dir.getAbsolutePath();
+				String sourcePath = code.getName().replace('.', File.separatorChar) + ".java";
+
+				File sourceFile = new File(pathJoin(basePath, "src", sourcePath));
+				if (!sourceFile.exists())
+					sourceFile = new File(pathJoin(basePath, sourcePath));
 
 				try {
 					codes.add(new SourceCode(sourceFile));
 				} catch (FileNotFoundException e) {
-					entrantsGrades.add(new GradeEntry(entrantName, 0,
+					entrantsGrades.add(new GradeResult(entrantName, 0,
 							String.format("ERROR: class %s not found", code.getName())));
 					codes.clear();
 					break;
 				} catch (ParseException e) {
-					entrantsGrades.add(new GradeEntry(entrantName, 0,
+					entrantsGrades.add(new GradeResult(entrantName, 0,
 							String.format("ERROR: class %s with parsing errors", code.getName())));
 					codes.clear();
 					break;
@@ -188,21 +198,37 @@ public class Step3 extends JPanel {
 			// if codes empty some error occurred, so pass to next entrant
 			if (codes.size() == 0)
 				continue;
+
+			try {
+				compiler = new Compiler();
+				compiler.addCodes(codes.toArray(new SourceCode[0]));
+				compiler.addAssertionCodes(testCodes);
+				compiler.compile();
+			} catch (IOException e) {
+			} catch (CompilerException e) {
+				entrantsGrades.add(new GradeResult(entrantName, 0,
+						String.format("ERROR: compilation error")));
+				continue;
+			}
+
+			GradeResult grade = grader.getGrade(entrantName, compiler.getClasses(), compiler.getAssertionClasses());
+			entrantsGrades.add(grade);
 		}
 
 		// Contructing the result
 		StringBuffer html = new StringBuffer("<html>");
-		html.append("<table border='1'>" +
-				"<tr><th>Name</th><th>Grade</th><th>Notes</th></tr>");
-		for (GradeEntry grade : entrantsGrades)
-			html.append(String.format("<tr><td>%s</td><td>%.2f</td><td>%s</td></tr>",
+		html.append("<h1>Grades</h1>");
+		html.append("<table border='1'>")
+			.append("<tr><th>Name</th><th>Grade</th><th>Notes</th></tr>");
+		for (GradeResult grade : entrantsGrades)
+			html.append(String.format("<tr><td>%s</td><td>%.2f%%</td><td>%s</td></tr>",
 					grade.getName(), grade.getGrade(), grade.getNotes()));
-		html.append("</table>");
-		html.append("</html>");
+		html.append("</table>")
+			.append("</html>");
 
-		// Show grades
+		// Show grades TODO: add a option to save grades results
 		if (gradesDialog == null) {
-			gradesDialog = new CMessageDialog("Entrants Grades");
+			gradesDialog = new CMessageDialog("Entrants Grades", "");
 			gradesDialog.setMinimumSize(new Dimension(640, 480));
 		}
 		gradesDialog.setLocationRelativeTo(this);

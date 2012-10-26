@@ -16,11 +16,14 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextPane;
 import javax.swing.KeyStroke;
+import javax.swing.UIManager;
 
 import org.gtc.gui.actions.DisposeAction;
 
 public class CMessageDialog extends JDialog {
 
+	private static final Font LABEL_TITLE_FONT = new Font("Dialog", Font.BOLD, 18);
+	private static final Font LABEL_FONT = UIManager.getFont("Label.font");
 	private JTextPane messageText;
 	private JLabel messageLabel;
 
@@ -60,7 +63,7 @@ public class CMessageDialog extends JDialog {
 		getContentPane().add(panel, BorderLayout.NORTH);
 		{
 			messageLabel = new JLabel(messageTitle);
-			messageLabel.setFont(new Font("Dialog", Font.BOLD, 18));
+			messageLabel.setFont(LABEL_TITLE_FONT);
 			panel.add(messageLabel);
 		}
 		{
@@ -127,6 +130,14 @@ public class CMessageDialog extends JDialog {
 	 */
 	public void setMessageTitle(String text) {
 		messageLabel.setText(text);
+	}
+
+	public void useSmallTitleFont() {
+		messageLabel.setFont(LABEL_FONT);
+	}
+
+	public void useDefaultTitleFont() {
+		messageLabel.setFont(LABEL_FONT);
 	}
 
 }

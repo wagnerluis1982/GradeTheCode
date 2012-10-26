@@ -122,4 +122,12 @@ public class Util {
 	 */
 	private static final int TEMP_DIR_ATTEMPTS = 10000;
 
+	public static double average(Double[] numbers) {
+		double value = 0;
+		for (double v : numbers)
+			value += v;
+
+		return value / numbers.length;
+	}
+
 }
