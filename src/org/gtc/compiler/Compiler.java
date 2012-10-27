@@ -27,12 +27,42 @@ import javax.tools.ToolProvider;
 import org.gtc.sourcecode.SourceCode;
 import org.gtc.util.Util;
 
+/**
+ * The class {@code Compiler} is used to compile java files
+ *
+ * <p> It use is basically pass the input {@link SourceCode} objects and get
+ * {@link java.lang.Class} objects as output.
+ *
+ * <p> You can use this class in the following way:
+ * <pre>
+ *     SourceCode code1 = new SourceCode(...);
+ *     SourceCode code2 = new SourceCode(...);
+ *
+ *     Compiler compiler = new Compiler();
+ *     compiler.addCodes(code1, code2);
+ *     compiler.compile();
+ *
+ *     Map&lt;String, ClassWrapper&gt; classes = compiler.getClasses();
+ * </pre>
+ *
+ * <p> The method {@link #getClasses()} returns a map where each key is the
+ * fully qualified class name (e.g.: {@code java.lang.Class} instead of
+ * {@code Class}).
+ *
+ * @author Wagner Macedo
+ */
 public class Compiler {
 	private File targetDir;
 	private Set<SourceCode> codes;
 	private List<SourceCode> assertionCodes;
 	private Map<String, ClassWrapper> classesMap;
 
+	/**
+	 * Create a compiler work
+	 *
+	 * @param targetDir the directory where the compiled files will stay
+	 * @throws InvalidTargetException
+	 */
 	public Compiler(File targetDir) throws InvalidTargetException {
 		if (!(targetDir.isDirectory() && targetDir.canWrite()))
 			throw new InvalidTargetException("invalid target directory");
@@ -40,6 +70,11 @@ public class Compiler {
 		initialize(targetDir);
 	}
 
+	/**
+	 * Create a compiler work using a newly created temporary directory
+	 *
+	 * @throws IOException
+	 */
 	public Compiler() throws IOException {
 		File tempDir = null;
 		try {
@@ -59,6 +94,11 @@ public class Compiler {
 		this.assertionCodes = new ArrayList<SourceCode>();
 	}
 
+	/**
+	 * Add {@link SourceCode} objects to this compiler work
+	 *
+	 * @param codes array of {@code SourceCode} objects
+	 */
 	public void addCodes(SourceCode... codes) {
 		codes = Util.filterNonNull(codes);
 
@@ -70,11 +110,25 @@ public class Compiler {
 		}
 	}
 
+	/**
+	 * Add {@link SourceCode} objects to this compiler work to be loaded after
+	 * compilation with {@code enableassertions} flag, suitable to be used as
+	 * test codes.
+	 *
+	 * @param codes array of {@code SourceCode} objects
+	 */
 	public void addAssertionCodes(SourceCode... codes) {
 		this.addCodes(codes);
 		this.assertionCodes.addAll(Arrays.asList(codes));
 	}
 
+	/**
+	 * Do the compilation in the previously added {@link SourceCode} objects
+	 *
+	 * @param out {@link PrintStream} object to be used for showing compiler
+	 * messages. If {@code null}, {@code System.out} is used.
+	 * @throws CompilerException
+	 */
 	public void compile(PrintStream out) throws CompilerException {
 		List<JavaFileObject> fileObjects = new ArrayList<JavaFileObject>();
 		for (SourceCode sourceCode : this.codes)
@@ -108,10 +162,21 @@ public class Compiler {
 		loadClasses();
 	}
 
+	/**
+	 * Do the compilation in the previously added {@link SourceCode} objects,
+	 * using {@code System.out} as the {@code PrintStream}.
+	 *
+	 * @throws CompilerException
+	 */
 	public void compile() throws CompilerException {
 		this.compile(null);
 	}
 
+	/**
+	 * Get classes loaded with {@code enableassertions} flag enabled
+	 *
+	 * @return array of {@link ClassWrapper} objects
+	 */
 	public ClassWrapper[] getAssertionClasses() {
 		List<ClassWrapper> classes = new ArrayList<ClassWrapper>();
 		for (SourceCode code : this.assertionCodes)
@@ -120,6 +185,12 @@ public class Compiler {
 		return classes.toArray(new ClassWrapper[0]);
 	}
 
+	/**
+	 * Get a map of loaded classes after compilation job. The map keys are the
+	 * fully qualified class names.
+	 *
+	 * @return {@code Map} of {@link ClassWrapper} objects
+	 */
 	public Map<String, ClassWrapper> getClasses() {
 		return this.classesMap;
 	}
@@ -161,12 +232,13 @@ public class Compiler {
 		}
 	}
 
+	/**
+	 * Get the target dir set to this compiler work
+	 *
+	 * @return the target dir
+	 */
 	public File getTargetDir() {
 		return targetDir;
 	}
-
-
-
-
 
 }

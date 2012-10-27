@@ -1,0 +1,10 @@
+org.gtc.compiler
+org.gtc.grade
+org.gtc.gui
+org.gtc.gui.actions
+org.gtc.gui.components
+org.gtc.gui.stuff
+org.gtc.gui.util
+org.gtc.sourcecode
+org.gtc.test
+org.gtc.util
