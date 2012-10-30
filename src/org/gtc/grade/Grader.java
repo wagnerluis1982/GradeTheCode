@@ -36,6 +36,7 @@ public class Grader {
 			return new GradeResult(name, 0, "FAIL: didn't pass in the conformity check");
 
 		List<Double> grades = new ArrayList<Double>();
+		StringBuffer notes = new StringBuffer();
 
 		TestRunner testRunner = new TestRunner();
 		for (ClassWrapper testClass : assertionClasses) {
@@ -43,20 +44,27 @@ public class Grader {
 			TestResult basisResult = basisResults.get(checkingResult.getName());
 
 			Set<Entry<String, TestMethodResult>> methodResultEntries = checkingResult.getMethodResults().entrySet();
+			notes.append(testClass.getName()).append("\n");
 			for (Entry<String, TestMethodResult> resultEntry : methodResultEntries) {
 				TestMethodResult methodResult = resultEntry.getValue();
-				if (methodResult.getStatus() != TestStatus.SUCCESS) {
+				TestStatus testStatus = methodResult.getStatus();
+				notes.append("- ").append(resultEntry.getKey()).append(" ")
+					.append(testStatus);
+				if (testStatus != TestStatus.SUCCESS) {
 					grades.add(0d);
 					continue;
 				} else {
 					double baseTime = basisResult.getMethodResults().get(resultEntry.getKey()).getElapsedTime();
-					double checkingTime = methodResult.getElapsedTime().doubleValue();
-					grades.add((baseTime / checkingTime) * 100);
+					long checkingTime = methodResult.getElapsedTime();
+					notes.append(" ").append(String.format("%.2f",
+							Util.milliSeconds(checkingTime))).append(" ms");
+					grades.add((baseTime / checkingTime) * 10);
 				}
+				notes.append("\n");
 			}
 		}
 
-		return new GradeResult(name, Util.average(grades.toArray(new Double[0])), "SUCCESS");
+		return new GradeResult(name, Util.average(grades.toArray(new Double[0])), notes);
 	}
 
 }

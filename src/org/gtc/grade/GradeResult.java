@@ -9,7 +9,7 @@ public class GradeResult {
 	public GradeResult(String name, double grade, CharSequence notes) {
 		this.name = name;
 		this.grade = grade;
-		this.notes = (String) notes;
+		this.notes = notes.toString();
 	}
 
 	public String getName() {

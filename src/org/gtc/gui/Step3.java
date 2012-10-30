@@ -184,12 +184,12 @@ public class Step3 extends JPanel {
 					codes.add(new SourceCode(sourceFile));
 				} catch (FileNotFoundException e) {
 					entrantsGrades.add(new GradeResult(entrantName, 0,
-							String.format("ERROR: class %s not found", code.getName())));
+							String.format("ERROR: source code for class %s not found", code.getName())));
 					codes.clear();
 					break;
 				} catch (ParseException e) {
 					entrantsGrades.add(new GradeResult(entrantName, 0,
-							String.format("ERROR: class %s with parsing errors", code.getName())));
+							String.format("ERROR: source code for class %s with parsing errors", code.getName())));
 					codes.clear();
 					break;
 				}
@@ -203,11 +203,11 @@ public class Step3 extends JPanel {
 				compiler = new Compiler();
 				compiler.addCodes(codes.toArray(new SourceCode[0]));
 				compiler.addAssertionCodes(testCodes);
-				compiler.compile();
+				compiler.compile(new PrintStream(output));
 			} catch (IOException e) {
 			} catch (CompilerException e) {
 				entrantsGrades.add(new GradeResult(entrantName, 0,
-						String.format("ERROR: compilation error")));
+						String.format("ERROR: compilation error\n%s", output)));
 				continue;
 			}
 
@@ -221,7 +221,7 @@ public class Step3 extends JPanel {
 		html.append("<table border='1'>")
 			.append("<tr><th>Name</th><th>Grade</th><th>Notes</th></tr>");
 		for (GradeResult grade : entrantsGrades)
-			html.append(String.format("<tr><td>%s</td><td>%.2f%%</td><td>%s</td></tr>",
+			html.append(String.format("<tr><td>%s</td><td>%.2f</td><td><pre>%s</pre></td></tr>",
 					grade.getName(), grade.getGrade(), grade.getNotes()));
 		html.append("</table>")
 			.append("</html>");

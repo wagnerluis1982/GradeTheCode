@@ -61,6 +61,10 @@ public class Util {
 		return millis * 1000000;
 	}
 
+	public static double milliSeconds(long nanos) {
+		return (double) nanos / 1000000;
+	}
+
 	public static String pathJoin(String... pieces) {
 		if (pieces.length == 0)
 			return "";
