@@ -47,8 +47,6 @@ public class Step3 extends JPanel {
 	private DefaultListModel<File> listModel;
 	private JFileChooser openDirChooser;
 
-	private GradesDialog gradesDialog;
-
 	/**
 	 * Create the panel.
 	 * @param window
@@ -240,11 +238,8 @@ public class Step3 extends JPanel {
 		html.append("</table>")
 			.append("</html>");
 
-		// Show grades TODO: add a option to save grades results
-		if (gradesDialog == null) {
-			gradesDialog = new GradesDialog(this, html);
-			gradesDialog.setVisible(true);
-		}
+		GradesDialog gradesDialog = new GradesDialog(this, html);
+		gradesDialog.setVisible(true);
 	}
 
 	protected void resetUI() {

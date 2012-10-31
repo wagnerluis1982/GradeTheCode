@@ -86,19 +86,20 @@ public class GradesDialog extends JDialog {
 						"Overwrite confirmation", JOptionPane.YES_NO_OPTION);
 				if (overwrite != JOptionPane.YES_OPTION)
 					continue;
-
-				try {
-					FileWriter fileWriter = new FileWriter(savingFile);
-					fileWriter.write(messageText.getText());
-					fileWriter.close();
-				} catch (IOException e) {
-					JOptionPane.showMessageDialog(this,
-							"Problem to save the result on this path", "Error",
-							JOptionPane.ERROR_MESSAGE);
-					continue;
-				}
-
 			}
+
+			try {
+				FileWriter fileWriter = new FileWriter(savingFile);
+				fileWriter.write(messageText.getText());
+				fileWriter.close();
+			} catch (IOException e) {
+				JOptionPane.showMessageDialog(this,
+						"Problem to save the result on this path", "Error",
+						JOptionPane.ERROR_MESSAGE);
+				continue;
+			}
+
+			break;
 		}
 	}
 
