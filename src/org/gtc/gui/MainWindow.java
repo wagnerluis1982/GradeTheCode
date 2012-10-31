@@ -97,8 +97,8 @@ public class MainWindow {
 			}
 		});
 
-				JSeparator separator = new JSeparator();
-				mnProject.add(separator);
+		JSeparator separator = new JSeparator();
+		mnProject.add(separator);
 
 		JMenuItem mntmSave = new JMenuItem("Save");
 		mntmSave.setEnabled(false);

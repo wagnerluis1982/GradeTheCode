@@ -50,7 +50,7 @@ public class SourceCodeTest {
 	}
 
 	@Test
-	public void testFromFile() throws IOException, FileNotReadException, ParseException {
+	public void testFromFile() throws IOException, ParseException {
 		File tempFile = File.createTempFile("gtc_", null);
 		tempFile.deleteOnExit();
 		FileWriter writer = new FileWriter(tempFile);
