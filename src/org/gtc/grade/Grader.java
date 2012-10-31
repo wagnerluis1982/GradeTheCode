@@ -17,11 +17,23 @@ import org.gtc.test.TestRunner;
 import org.gtc.test.TestStatus;
 import org.gtc.util.Util;
 
+/**
+ * Class used to compute a grade based on conformity rules and a basis test
+ * result.
+ *
+ * @author Wagner Macedo
+ */
 public class Grader {
 
 	private Conformity conformity;
 	private TreeMap<String,TestResult> basisResults;
 
+	/**
+	 * Contruct a {@code Grader} object with a conformity rules and basis test.
+	 *
+	 * @param conformityRules {@link ConformityRules} object
+	 * @param basisResults any iterable of {@link TestResult} objects
+	 */
 	public Grader(ConformityRules conformityRules, Iterable<TestResult> basisResults) {
 		conformity = new Conformity(conformityRules);
 
@@ -30,7 +42,17 @@ public class Grader {
 			this.basisResults.put(testResult.getName(), testResult);
 	}
 
-	public GradeResult getGrade(String name, Map<String, ClassWrapper> checkingClasses, ClassWrapper[] assertionClasses) {
+	/**
+	 * Compute the grade of a set of pre-compiled classes passed in arguments.
+	 *
+	 * @param name Identify this result. This is normally the student name or
+	 * his or her enrollment number.
+	 * @param checkingClasses the student's java classes
+	 * @param assertionClasses the test classes that test {@code checkingClasses}
+	 * @return a {@link GradeResult} object with grading data
+	 */
+	public GradeResult getGrade(String name, Map<String, ClassWrapper> checkingClasses,
+			ClassWrapper[] assertionClasses) {
 		ConformityResult conformityResult = conformity.check(checkingClasses);
 		if (conformityResult.iterator().hasNext())
 			return new GradeResult(name, 0, "FAIL: didn't pass in the conformity check");

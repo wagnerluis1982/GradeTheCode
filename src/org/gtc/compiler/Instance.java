@@ -65,7 +65,7 @@ public class Instance {
 	 *
 	 * @param method the method object, if not member of this class throw an
 	 * exception
-	 * @param array of args arguments to call the method
+	 * @param args array of args arguments to call the method
 	 * @return any object returned by the method call
 	 *
 	 * @throws IllegalAccessException
