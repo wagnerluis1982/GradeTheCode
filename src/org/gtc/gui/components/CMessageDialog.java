@@ -45,7 +45,7 @@ public class CMessageDialog extends JDialog {
 	 * Create the dialog.
 	 */
 	public CMessageDialog(String windowTitle, String messageTitle) {
-		setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+		setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 		setModalityType(ModalityType.APPLICATION_MODAL);
 		setTitle(windowTitle);
 		getContentPane().setLayout(new BorderLayout());

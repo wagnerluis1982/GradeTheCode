@@ -130,6 +130,9 @@ public class Compiler {
 	 * @throws CompilerException
 	 */
 	public void compile(PrintStream out) throws CompilerException {
+		if (this.codes.size() == 0)
+			throw new NoSourceCodesException("No source codes found");
+
 		List<JavaFileObject> fileObjects = new ArrayList<JavaFileObject>();
 		for (SourceCode sourceCode : this.codes)
 			fileObjects.add(sourceCode.getJavaFileObject());

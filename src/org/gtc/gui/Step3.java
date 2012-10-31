@@ -5,7 +5,6 @@ import japa.parser.ParseException;
 
 import javax.swing.JPanel;
 import java.awt.BorderLayout;
-import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -48,7 +47,7 @@ public class Step3 extends JPanel {
 	private DefaultListModel<File> listModel;
 	private JFileChooser openDirChooser;
 
-	private CMessageDialog gradesDialog;
+	private GradesDialog gradesDialog;
 
 	/**
 	 * Create the panel.
@@ -128,6 +127,15 @@ public class Step3 extends JPanel {
 			return;
 		}
 
+		if (masterCodes.length == 0) {
+			window.dialogs.errorMessage("No master code", "No master code was found");
+			return;
+		}
+
+		if (testCodes.length == 0) {
+			window.dialogs.errorMessage("No test code", "No test code was found");
+		}
+
 		// Compiling master and test codes together
 		Compiler compiler;
 		try {
@@ -146,7 +154,7 @@ public class Step3 extends JPanel {
 		try {
 			compiler.compile(new PrintStream(output));
 		} catch (CompilerException e) {
-			CMessageDialog errorDialog = new CMessageDialog("Compile error", e.toString());
+			CMessageDialog errorDialog = new CMessageDialog("Compile error", e.getMessage());
 			errorDialog.useSmallTitleFont();
 			errorDialog.setMessage(output.toString());
 			errorDialog.setLocationRelativeTo(this);
@@ -162,6 +170,12 @@ public class Step3 extends JPanel {
 
 		final ConformityRules conformityRules = window.step1.getConformityRules();
 		Grader grader = new Grader(conformityRules, masterTestResults);
+
+		if (listModel.size() == 0) {
+			window.dialogs.errorMessage("No entrant code",
+					"You need at least one entrant code to start the grade process");
+			return;
+		}
 
 		// Grade each entrant in the list
 		List<GradeResult> entrantsGrades = new ArrayList<GradeResult>();
@@ -228,12 +242,9 @@ public class Step3 extends JPanel {
 
 		// Show grades TODO: add a option to save grades results
 		if (gradesDialog == null) {
-			gradesDialog = new CMessageDialog("Entrants Grades", "");
-			gradesDialog.setMinimumSize(new Dimension(640, 480));
+			gradesDialog = new GradesDialog(this, html);
+			gradesDialog.setVisible(true);
 		}
-		gradesDialog.setLocationRelativeTo(this);
-		gradesDialog.setHtmlMessage(html);
-		gradesDialog.setVisible(true);
 	}
 
 	protected void resetUI() {
