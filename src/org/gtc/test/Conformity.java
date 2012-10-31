@@ -7,13 +7,24 @@ import java.util.Map;
 import org.gtc.compiler.ClassWrapper;
 import org.gtc.test.MethodRule;
 
+/**
+ * Class to do conformity checks
+ *
+ * @author Wagner Macedo
+ */
 public class Conformity {
 
+	/**
+	 * Enum that says the reason of an identifier problem
+	 */
 	public enum Reason {
 		VISIBILITY,
 		RETURN_TYPE,
 	}
 
+	/**
+	 * Enum that says the visibility found in an identifier
+	 */
 	public enum Visibility {
 		PRIVATE,
 		PROTECTED,
@@ -23,10 +34,22 @@ public class Conformity {
 
 	private ConformityRules rules;
 
+	/**
+	 * Construct a {@code Conformity} object with a target conformity rules used
+	 * for checks
+	 *
+	 * @param rules a {@link ConformityRules} object
+	 */
 	public Conformity(ConformityRules rules) {
 		this.rules = rules;
 	}
 
+	/**
+	 * Do a conformity check in a set of pre-compiled classes
+	 *
+	 * @param classes map of classes to check
+	 * @return the conformity result
+	 */
 	public ConformityResult check(Map<String, ClassWrapper> classes) {
 		ConformityResult result = new ConformityResult();
 
@@ -48,7 +71,7 @@ public class Conformity {
 					continue;
 				}
 
-				Visibility visibility = methodVisibility(checkingMethod);
+				Visibility visibility = findMethodVisibility(checkingMethod);
 				if (!methodRule.getVisibility().equals(visibility)) {
 					result.addNonConformingMethod(methodRule, checkingMethod,
 							Reason.VISIBILITY);
@@ -66,7 +89,7 @@ public class Conformity {
 		return result;
 	}
 
-	private Visibility methodVisibility(Method method) {
+	private Visibility findMethodVisibility(Method method) {
 		int mod = method.getModifiers();
 
 		if (Modifier.isPrivate(mod))

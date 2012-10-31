@@ -10,6 +10,11 @@ import java.util.Properties;
 import org.gtc.compiler.ClassWrapper;
 import org.gtc.compiler.Instance;
 
+/**
+ * Class used to run test classes written in a similar way to JUnit 3
+ *
+ * @author Wagner Macedo
+ */
 public class TestRunner {
 	private final static SecurityManager SYS_SEC_MAN = System.getSecurityManager();
 	private final static SecurityManager SAFE_SEC_MAN = new SecurityManager() {
@@ -30,6 +35,12 @@ public class TestRunner {
 		}
 	};
 
+	/**
+	 * Run a test class
+	 *
+	 * @param testClass a test class
+	 * @return the test result
+	 */
 	public TestResult runTest(ClassWrapper testClass) {
 		final TestResult result = new TestResult();
 		result.setName(testClass.getName());
