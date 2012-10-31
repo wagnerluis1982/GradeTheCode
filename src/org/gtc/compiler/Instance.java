@@ -45,7 +45,7 @@ public class Instance {
 	 * @throws IllegalAccessException
 	 * @throws IllegalArgumentException
 	 * @throws CallMethodException
-	 * @see {@link java.lang.reflect.Method#invoke(Object, Object...)}
+	 * @see java.lang.reflect.Method#invoke(Object, Object...)
 	 */
 	public Object call(String name, Object... args)
 			throws NoSuchMethodException, SecurityException,

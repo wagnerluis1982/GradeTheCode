@@ -98,7 +98,7 @@ public class Util {
 	 * <p>
 	 * NOTE: This method originally belongs to "com.google.common.io.Files", a
 	 * class of the guava-libraries, which can be found at
-     * {@link https://code.google.com/p/guava-libraries/}. Some little
+     * https://code.google.com/p/guava-libraries/. Some little
      * modifications were done to adapt it to GTC project.
 	 *
 	 * @return the newly-created directory
